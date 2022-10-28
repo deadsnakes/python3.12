@@ -10,9 +10,9 @@ Bug-cpython: https://bugs.python.org/issue37561
 Forwarded: no
 ---
  Lib/sysconfig.py | 2 +-
- Makefile.pre.in  | 7 +++++--
+ Makefile.pre.in  | 6 ++++--
  configure.ac     | 2 +-
- 3 files changed, 7 insertions(+), 4 deletions(-)
+ 3 files changed, 6 insertions(+), 4 deletions(-)
 
 diff --git a/Lib/sysconfig.py b/Lib/sysconfig.py
 index cc7703b..8db6469 100644
@@ -28,10 +28,10 @@ index cc7703b..8db6469 100644
  
  
 diff --git a/Makefile.pre.in b/Makefile.pre.in
-index 2de8fa7..1e61ac4 100644
+index 1e85715..48e579f 100644
 --- a/Makefile.pre.in
 +++ b/Makefile.pre.in
-@@ -2084,8 +2084,10 @@ libinstall:	all $(srcdir)/Modules/xxmodule.c
+@@ -2121,8 +2121,10 @@ libinstall:	all $(srcdir)/Modules/xxmodule.c
  			esac; \
  		done; \
  	done
@@ -44,16 +44,8 @@ index 2de8fa7..1e61ac4 100644
  	$(INSTALL_DATA) $(srcdir)/LICENSE $(DESTDIR)$(LIBDEST)/LICENSE.txt
  	if test -d $(DESTDIR)$(LIBDEST)/distutils/tests; then \
  		$(INSTALL_DATA) $(srcdir)/Modules/xxmodule.c \
-@@ -2244,6 +2246,7 @@ sharedinstall: all
- 		--install-scripts=$(BINDIR) \
- 		--install-platlib=$(DESTSHARED) \
- 		--root=$(DESTDIR)/
-+	-rm $(DESTDIR)$(DESTSHARED)/_sysconfigdata_$(ABIFLAGS)_$(MULTIARCH).py
- 	-rm $(DESTDIR)$(DESTSHARED)/_sysconfigdata_$(ABIFLAGS)_$(MACHDEP)_$(MULTIARCH).py
- 	-rm -r $(DESTDIR)$(DESTSHARED)/__pycache__
- 
 diff --git a/configure.ac b/configure.ac
-index 2b0760b..6d51226 100644
+index baab250..9189443 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -162,7 +162,7 @@ AC_ARG_WITH(

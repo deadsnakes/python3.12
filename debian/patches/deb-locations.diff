@@ -10,10 +10,10 @@ Subject: deb-locations
  2 files changed, 5 insertions(+), 1 deletion(-)
 
 diff --git a/Lib/pydoc.py b/Lib/pydoc.py
-index 4343166..74e9165 100755
+index c79ec77..aa6239d 100755
 --- a/Lib/pydoc.py
 +++ b/Lib/pydoc.py
-@@ -31,6 +31,10 @@ to a file named "<name>.html".
+@@ -31,6 +31,10 @@ class or function within a module or module in a package.  If the
  
  Module docs for core modules are assumed to be in
  
@@ -25,7 +25,7 @@ index 4343166..74e9165 100755
  
  This can be overridden by setting the PYTHONDOCS environment variable
 diff --git a/Misc/python.man b/Misc/python.man
-index c979f5d..703b289 100644
+index 1705eeb..ee227ed 100644
 --- a/Misc/python.man
 +++ b/Misc/python.man
 @@ -421,7 +421,7 @@ exception).  Error messages are written to stderr.
