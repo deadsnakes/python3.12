@@ -12,7 +12,7 @@ diff --git a/Lib/tkinter/__init__.py b/Lib/tkinter/__init__.py
 index a8e7bf4..536a8e6 100644
 --- a/Lib/tkinter/__init__.py
 +++ b/Lib/tkinter/__init__.py
-@@ -35,7 +35,10 @@
+@@ -35,7 +35,10 @@ import enum
  import sys
  import types
  

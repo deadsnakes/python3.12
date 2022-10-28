@@ -27,7 +27,7 @@ diff --git a/Lib/test/test_lib2to3/test_parser.py b/Lib/test/test_lib2to3/test_p
 index 2c798b1..7c0b3e8 100644
 --- a/Lib/test/test_lib2to3/test_parser.py
 +++ b/Lib/test/test_lib2to3/test_parser.py
-@@ -39,88 +39,6 @@ def test_formfeed(self):
+@@ -39,88 +39,6 @@ class TestDriver(support.TestCase):
          self.assertEqual(t.children[1].children[0].type, syms.print_stmt)
  
  
