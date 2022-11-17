@@ -15,10 +15,10 @@ Forwarded: no
  3 files changed, 6 insertions(+), 4 deletions(-)
 
 diff --git a/Lib/sysconfig.py b/Lib/sysconfig.py
-index cc7703b..8db6469 100644
+index e9ea92d..2d29515 100644
 --- a/Lib/sysconfig.py
 +++ b/Lib/sysconfig.py
-@@ -492,7 +492,7 @@ def _get_sysconfigdata_name():
+@@ -497,7 +497,7 @@ def _get_sysconfigdata_name():
      multiarch = getattr(sys.implementation, '_multiarch', '')
      return os.environ.get(
          '_PYTHON_SYSCONFIGDATA_NAME',
@@ -28,10 +28,10 @@ index cc7703b..8db6469 100644
  
  
 diff --git a/Makefile.pre.in b/Makefile.pre.in
-index 4b7cfe3..6cfaeb3 100644
+index 5326609..732d34d 100644
 --- a/Makefile.pre.in
 +++ b/Makefile.pre.in
-@@ -2121,8 +2121,10 @@ libinstall:	all $(srcdir)/Modules/xxmodule.c
+@@ -2135,8 +2135,10 @@ libinstall:	all $(srcdir)/Modules/xxmodule.c
  			esac; \
  		done; \
  	done
@@ -42,10 +42,10 @@ index 4b7cfe3..6cfaeb3 100644
 +	$(LN) -s _sysconfigdata_$(ABIFLAGS)_$(MULTIARCH).py \
 +		$(DESTDIR)$(LIBDEST)/_sysconfigdata_$(ABIFLAGS)_$(MACHDEP)_$(MULTIARCH).py
  	$(INSTALL_DATA) $(srcdir)/LICENSE $(DESTDIR)$(LIBDEST)/LICENSE.txt
- 	if test -d $(DESTDIR)$(LIBDEST)/distutils/tests; then \
- 		$(INSTALL_DATA) $(srcdir)/Modules/xxmodule.c \
+ 	-PYTHONPATH=$(DESTDIR)$(LIBDEST)  $(RUNSHARED) \
+ 		$(PYTHON_FOR_BUILD) -Wi $(DESTDIR)$(LIBDEST)/compileall.py \
 diff --git a/configure.ac b/configure.ac
-index c2e17d8..6f85546 100644
+index acfde45..676b72a 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -162,7 +162,7 @@ AC_ARG_WITH(
