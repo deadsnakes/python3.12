@@ -83,7 +83,7 @@ derivative      := $(shell \
 	else echo Unknown; fi)
 
 VER=3.12
-SVER=3.12.0~a1
+SVER=3.12.0~a2
 NVER=3.13
 PVER=python$(VER)
 EXT_VER=$(subst .,,$(VER))
