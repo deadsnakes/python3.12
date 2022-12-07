@@ -2,7 +2,6 @@ python3.12
 ==========
 
 builds are currently supported for:
-- bionic
 - focal
 - jammy
 
