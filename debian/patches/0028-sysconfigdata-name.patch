@@ -15,7 +15,7 @@ Forwarded: no
  3 files changed, 6 insertions(+), 4 deletions(-)
 
 diff --git a/Lib/sysconfig.py b/Lib/sysconfig.py
-index e9ea92d..2d29515 100644
+index 3d5e701..7a184ef 100644
 --- a/Lib/sysconfig.py
 +++ b/Lib/sysconfig.py
 @@ -497,7 +497,7 @@ def _get_sysconfigdata_name():
@@ -28,10 +28,10 @@ index e9ea92d..2d29515 100644
  
  
 diff --git a/Makefile.pre.in b/Makefile.pre.in
-index 5326609..732d34d 100644
+index ceb75c6..1fb9d16 100644
 --- a/Makefile.pre.in
 +++ b/Makefile.pre.in
-@@ -2135,8 +2135,10 @@ libinstall:	all $(srcdir)/Modules/xxmodule.c
+@@ -2141,8 +2141,10 @@ libinstall:	all $(srcdir)/Modules/xxmodule.c
  			esac; \
  		done; \
  	done
@@ -42,10 +42,10 @@ index 5326609..732d34d 100644
 +	$(LN) -s _sysconfigdata_$(ABIFLAGS)_$(MULTIARCH).py \
 +		$(DESTDIR)$(LIBDEST)/_sysconfigdata_$(ABIFLAGS)_$(MACHDEP)_$(MULTIARCH).py
  	$(INSTALL_DATA) $(srcdir)/LICENSE $(DESTDIR)$(LIBDEST)/LICENSE.txt
- 	-PYTHONPATH=$(DESTDIR)$(LIBDEST)  $(RUNSHARED) \
- 		$(PYTHON_FOR_BUILD) -Wi $(DESTDIR)$(LIBDEST)/compileall.py \
+ 	@ # Build PYC files for the 3 optimization levels (0, 1, 2)
+ 	-PYTHONPATH=$(DESTDIR)$(LIBDEST) $(RUNSHARED) \
 diff --git a/configure.ac b/configure.ac
-index acfde45..676b72a 100644
+index e2ad5f5..d2d07d3 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -162,7 +162,7 @@ AC_ARG_WITH(
