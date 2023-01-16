@@ -2,6 +2,443 @@
 Python News
 +++++++++++
 
+What's New in Python 3.12.0 alpha 4?
+====================================
+
+*Release date: 2023-01-10*
+
+Core and Builtins
+-----------------
+
+- gh-issue-100776: Fix misleading default value in :func:`input`'s
+  ``__text_signature__``.
+
+- gh-issue-99005: Remove :opcode:`UNARY_POSITIVE`, :opcode:`ASYNC_GEN_WRAP`
+  and :opcode:`LIST_TO_TUPLE`, replacing them with intrinsics.
+
+- gh-issue-99005: Add new :opcode:`CALL_INSTRINSIC_1` instruction. Remove
+  :opcode:`IMPORT_STAR`, :opcode:`PRINT_EXPR` and
+  :opcode:`STOPITERATION_ERROR`, replacing them with the
+  :opcode:`CALL_INSTRINSIC_1` instruction.
+
+- gh-issue-100288: Remove the LOAD_ATTR_METHOD_WITH_DICT specialized
+  instruction. Stats show it is not useful.
+
+- gh-issue-100720: Added ``_PyFrame_NumSlotsForCodeObject``, which returns
+  the number of slots needed in a frame for a given code object.
+
+- gh-issue-100719: Removed the co_nplaincellvars field from the code object,
+  as it is redundant.
+
+- gh-issue-100637: Fix :func:`int.__sizeof__` calculation to include the 1
+  element ob_digit array for 0 and False.
+
+- gh-issue-100649: Update the native_thread_id field of PyThreadState after
+  fork.
+
+- gh-issue-100126: Fix an issue where "incomplete" frames could be briefly
+  visible to C code while other frames are being torn down, possibly
+  resulting in corruption or hard crashes of the interpreter while running
+  finalizers.
+
+- gh-issue-87447: Fix :exc:`SyntaxError` on comprehension rebind checking
+  with names that are not actually redefined.
+
+  Now reassigning ``b`` in ``[(b := 1) for a, b.prop in some_iter]`` is
+  allowed. Reassigning ``a`` is still disallowed as per :pep:`572`.
+
+- gh-issue-100268: Add :meth:`int.is_integer` to improve duck type
+  compatibility between :class:`int` and :class:`float`.
+
+- gh-issue-100425: Improve the accuracy of ``sum()`` with compensated
+  summation.
+
+- gh-issue-100374: Fix incorrect result and delay in :func:`socket.getfqdn`.
+  Patch by Dominic Socular.
+
+- gh-issue-100357: Convert ``vars``, ``dir``, ``next``, ``getattr``, and
+  ``iter`` to argument clinic.
+
+- gh-issue-100117: Improve the output of ``co_lines`` by emitting only one
+  entry for each line range.
+
+- gh-issue-90043: Handle NaNs when specializing :opcode:`COMPARE_OP` for
+  :class:`float` values.
+
+- gh-issue-100222: Redefine the ``_Py_CODEUNIT`` typedef as a union to
+  describe its layout to the C compiler, avoiding type punning and improving
+  clarity.
+
+- gh-issue-99955: Internal compiler functions (in compile.c) now
+  consistently return -1 on error and 0 on success.
+
+- gh-issue-100188: The ``BINARY_SUBSCR_LIST_INT`` and
+  ``BINARY_SUBSCR_TUPLE_INT`` instructions are no longer used for negative
+  integers because those instructions always miss when encountering negative
+  integers.
+
+- gh-issue-99110: Initialize frame->previous in frameobject.c to fix a
+  segmentation fault when accessing frames created by :c:func:`PyFrame_New`.
+
+- gh-issue-94155: Improved the hashing algorithm for code objects,
+  mitigating some hash collisions.
+
+- gh-issue-99540: ``None`` now hashes to a constant value. This is not a
+  requirements change.
+
+- gh-issue-100143: When built with ``--enable-pystats``, stats collection is
+  now off by default. To enable it early at startup, pass the ``-Xpystats``
+  flag.  Stats are now always dumped, even if switched off.
+
+- gh-issue-100146: Improve ``BUILD_LIST`` opcode so that it works similarly
+  to the ``BUILD_TUPLE`` opcode, by stealing references from the stack
+  rather than repeatedly using stack operations to set list elements.
+  Implementation details are in a new private API
+  :c:func:`_PyList_FromArraySteal`.
+
+- gh-issue-100110: Specialize ``FOR_ITER`` for tuples.
+
+- gh-issue-100050: Honor existing errors obtained when searching for
+  mismatching parentheses in the tokenizer. Patch by Pablo Galindo
+
+- gh-issue-92216: Improve the performance of :func:`hasattr` for type
+  objects with a missing attribute.
+
+- gh-issue-99582: Freeze :mod:`zipimport` module into ``_bootstrap_python``.
+
+- gh-issue-99554: Pack debugging location tables more efficiently during
+  bytecode compilation.
+
+- gh-issue-98522: Add an internal version number to code objects, to give
+  better versioning of inner functions and comprehensions, and thus better
+  specialization of those functions. This change is invisible to both Python
+  and C extensions.
+
+- gh-issue-94603: Improve performance of ``list.pop`` for small lists.
+
+- gh-issue-89051: Add :data:`ssl.OP_LEGACY_SERVER_CONNECT`
+
+- bpo-32782: ``ctypes`` arrays of length 0 now report a correct itemsize
+  when a ``memoryview`` is constructed from them, rather than always giving
+  a value of 0.
+
+Library
+-------
+
+- gh-issue-100833: Speed up :func:`math.fsum` by removing defensive
+  ``volatile`` qualifiers.
+
+- gh-issue-100805: Modify :func:`random.choice` implementation to once again
+  work with NumPy arrays.
+
+- gh-issue-100813: Add :data:`socket.IP_PKTINFO` constant.
+
+- gh-issue-100792: Make :meth:`email.message.Message.__contains__` twice as
+  fast.
+
+- gh-issue-91851: Microoptimizations for
+  :meth:`fractions.Fraction.__round__`, :meth:`fractions.Fraction.__ceil__`
+  and :meth:`fractions.Fraction.__floor__`.
+
+- gh-issue-90104: Avoid RecursionError on ``repr`` if a dataclass field
+  definition has a cyclic reference.
+
+- gh-issue-100689: Fix crash in :mod:`pyexpat` by statically allocating
+  ``PyExpat_CAPI`` capsule.
+
+- gh-issue-100740: Fix ``unittest.mock.Mock`` not respecting the spec for
+  attribute names prefixed with ``assert``.
+
+- gh-issue-91219: Change ``SimpleHTTPRequestHandler`` to support subclassing
+  to provide a different set of index file names instead of using
+  ``__init__`` parameters.
+
+- gh-issue-100690: ``Mock`` objects which are not unsafe will now raise an
+  ``AttributeError`` when accessing an attribute that matches the name of an
+  assertion but without the prefix ``assert_``, e.g. accessing
+  ``called_once`` instead of ``assert_called_once``. This is in addition to
+  this already happening for accessing attributes with prefixes ``assert``,
+  ``assret``, ``asert``, ``aseert``, and ``assrt``.
+
+- gh-issue-89727: Simplify and optimize :func:`os.walk` by using
+  :func:`isinstance` checks to check the top of the stack.
+
+- gh-issue-100485: Add math.sumprod() to compute the sum of products.
+
+- gh-issue-86508: Fix :func:`asyncio.open_connection` to skip binding to
+  local addresses of different family. Patch by Kumar Aditya.
+
+- gh-issue-97930: ``importlib.resources.files`` now accepts a module as an
+  anchor instead of only accepting packages. If a module is passed,
+  resources are resolved adjacent to that module (in the same package or at
+  the package root). The parameter was renamed from ``package`` to
+  ``anchor`` with a compatibility shim for those passing by keyword.
+  Additionally, the new ``anchor`` parameter is now optional and will
+  default to the caller's module.
+
+- gh-issue-100585: Fixed a bug where importlib.resources.as_file was leaving
+  file pointers open
+
+- gh-issue-100562: Improve performance of :meth:`pathlib.Path.absolute` by
+  nearly 2x. This comes at the cost of a performance regression in
+  :meth:`pathlib.Path.cwd`, which is generally used less frequently in user
+  code.
+
+- gh-issue-100519: Small simplification of
+  :func:`http.cookiejar.eff_request_host` that improves readability and
+  better matches the RFC wording.
+
+- gh-issue-100287: Fix the interaction of :func:`unittest.mock.seal` with
+  :class:`unittest.mock.AsyncMock`.
+
+- gh-issue-100488: Add :meth:`Fraction.is_integer` to check whether a
+  :class:`fractions.Fraction` is an integer. This improves duck type
+  compatibility with :class:`float` and :class:`int`.
+
+- gh-issue-100474: :mod:`http.server` now checks that an index page is
+  actually a regular file before trying to serve it.  This avoids issues
+  with directories named ``index.html``.
+
+- gh-issue-100363: Speed up :func:`asyncio.get_running_loop` by removing
+  redundant ``getpid`` checks. Patch by Kumar Aditya.
+
+- gh-issue-78878: Fix crash when creating an instance of
+  :class:`!_ctypes.CField`.
+
+- gh-issue-100348: Fix ref cycle in
+  :class:`!asyncio._SelectorSocketTransport` by removing ``_read_ready_cb``
+  in ``close``.
+
+- gh-issue-100344: Provide C implementation for :func:`asyncio.current_task`
+  for a 4x-6x speedup.
+
+- gh-issue-100272: Fix JSON serialization of OrderedDict.  It now preserves
+  the order of keys.
+
+- gh-issue-83076: Instantiation of ``Mock()`` and ``AsyncMock()`` is now
+  3.8x faster.
+
+- gh-issue-100234: Set a default value of 1.0 for the ``lambd`` parameter in
+  random.expovariate().
+
+- gh-issue-100228: A :exc:`DeprecationWarning` may be raised when
+  :func:`os.fork()` or :func:`os.forkpty()` is called from multi-threaded
+  processes.  Forking with threads is unsafe and can cause deadlocks,
+  crashes and subtle problems. Lack of a warning does not indicate that the
+  fork call was actually safe, as Python may not be aware of all threads.
+
+- gh-issue-100039: Improve signatures for enums and flags.
+
+- gh-issue-100133: Fix regression in :mod:`asyncio` where a subprocess would
+  sometimes lose data received from pipe.
+
+- bpo-44592: Fixes inconsistent handling of case sensitivity of
+  *extrasaction* arg in :class:`csv.DictWriter`.
+
+- gh-issue-100098: Fix ``tuple`` subclasses being cast to ``tuple`` when
+  used as enum values.
+
+- gh-issue-85432: Rename the *fmt* parameter of the pure-Python
+  implementation of :meth:`datetime.time.strftime` to *format*. Rename the
+  *t* parameter of :meth:`datetime.datetime.fromtimestamp` to *timestamp*.
+  These changes mean the parameter names in the pure-Python implementation
+  now match the parameter names in the C implementation. Patch by Alex
+  Waygood.
+
+- gh-issue-98778: Update :exc:`~urllib.error.HTTPError` to be initialized
+  properly, even if the ``fp`` is ``None``. Patch by Dong-hee Na.
+
+- gh-issue-99925: Unify error messages in JSON serialization between
+  ``json.dumps(float('nan'), allow_nan=False)`` and
+  ``json.dumps(float('nan'), allow_nan=False, indent=<SOMETHING>)``. Now
+  both include the representation of the value that could not be serialized.
+
+- gh-issue-89727: Fix issue with :func:`os.walk` where a
+  :exc:`RecursionError` would occur on deep directory structures by
+  adjusting the implementation of :func:`os.walk` to be iterative instead of
+  recursive.
+
+- gh-issue-94943: Add :ref:`enum-dataclass-support` to the
+  :class:`~enum.Enum` :meth:`~enum.Enum.__repr__`. When inheriting from a
+  :class:`~dataclasses.dataclass`, only show the field names in the value
+  section of the member :func:`repr`, and not the dataclass' class name.
+
+- gh-issue-83035: Fix :func:`inspect.getsource` handling of decorator calls
+  with nested parentheses.
+
+- gh-issue-99576: Fix ``.save()`` method for ``LWPCookieJar`` and
+  ``MozillaCookieJar``: saved file was not truncated on repeated save.
+
+- gh-issue-94912: Add :func:`inspect.markcoroutinefunction` decorator which
+  manually marks a function as a coroutine for the benefit of
+  :func:`iscoroutinefunction`.
+
+- gh-issue-99509: Add :pep:`585` support for
+  :class:`multiprocessing.queues.Queue`.
+
+- gh-issue-99482: Remove ``Jython`` partial compatibility code from several
+  stdlib modules.
+
+- gh-issue-99433: Fix :mod:`doctest` failure on
+  :class:`types.MethodWrapperType` in modules.
+
+- gh-issue-85267: Several improvements to :func:`inspect.signature`'s
+  handling of ``__text_signature``. - Fixes a case where
+  :func:`inspect.signature` dropped parameters - Fixes a case where
+  :func:`inspect.signature` raised :exc:`tokenize.TokenError` - Allows
+  :func:`inspect.signature` to understand defaults involving binary
+  operations of constants - :func:`inspect.signature` is documented as only
+  raising :exc:`TypeError` or :exc:`ValueError`, but sometimes raised
+  :exc:`RuntimeError`. These cases now raise :exc:`ValueError` - Removed a
+  dead code path
+
+- gh-issue-91166: :mod:`asyncio` is optimized to avoid excessive copying
+  when writing to socket and use :meth:`~socket.socket.sendmsg` if the
+  platform supports it. Patch by Kumar Aditya.
+
+- gh-issue-98030: Add missing TCP socket options from Linux: ``TCP_MD5SIG``,
+  ``TCP_THIN_LINEAR_TIMEOUTS``, ``TCP_THIN_DUPACK``, ``TCP_REPAIR``,
+  ``TCP_REPAIR_QUEUE``, ``TCP_QUEUE_SEQ``, ``TCP_REPAIR_OPTIONS``,
+  ``TCP_TIMESTAMP``, ``TCP_CC_INFO``, ``TCP_SAVE_SYN``, ``TCP_SAVED_SYN``,
+  ``TCP_REPAIR_WINDOW``, ``TCP_FASTOPEN_CONNECT``, ``TCP_ULP``,
+  ``TCP_MD5SIG_EXT``, ``TCP_FASTOPEN_KEY``, ``TCP_FASTOPEN_NO_COOKIE``,
+  ``TCP_ZEROCOPY_RECEIVE``, ``TCP_INQ``, ``TCP_TX_DELAY``.
+
+- gh-issue-88500: Reduced the memory usage of :func:`urllib.parse.unquote`
+  and :func:`urllib.parse.unquote_to_bytes` on large values.
+
+- gh-issue-96127: ``inspect.signature`` was raising ``TypeError`` on call
+  with mock objects. Now it correctly returns ``(*args, **kwargs)`` as
+  infered signature.
+
+- gh-issue-95882: Fix a 3.11 regression in
+  :func:`~contextlib.asynccontextmanager`, which caused it to propagate
+  exceptions with incorrect tracebacks and fix a 3.11 regression in
+  :func:`~contextlib.contextmanager`, which caused it to propagate
+  exceptions with incorrect tracebacks for :exc:`StopIteration`.
+
+- gh-issue-78707: Deprecate passing more than one positional argument to
+  :meth:`pathlib.PurePath.relative_to` and
+  :meth:`~pathlib.PurePath.is_relative_to`.
+
+- gh-issue-92122: Fix reStructuredText syntax errors in docstrings in the
+  :mod:`enum` module.
+
+- gh-issue-91851: Optimize the :class:`~fractions.Fraction` arithmetics for
+  small components.
+
+- bpo-24132: Make :class:`pathlib.PurePath` and :class:`~pathlib.Path`
+  subclassable (private to start). Previously, attempting to instantiate a
+  subclass resulted in an :exc:`AttributeError` being raised. Patch by
+  Barney Gale.
+
+- bpo-40447: Accept :class:`os.PathLike` (such as :class:`pathlib.Path`) in
+  the ``stripdir`` arguments of :meth:`compileall.compile_file` and
+  :meth:`compileall.compile_dir`.
+
+- bpo-36880: Fix a reference counting issue when a :mod:`ctypes` callback
+  with return type :class:`~ctypes.py_object` returns ``None``, which could
+  cause crashes.
+
+Documentation
+-------------
+
+- gh-issue-100616: Document existing ``attr`` parameter to
+  :func:`curses.window.vline` function in :mod:`curses`.
+
+- gh-issue-100472: Remove claim in documentation that the ``stripdir``,
+  ``prependdir`` and ``limit_sl_dest`` parameters of
+  :func:`compileall.compile_dir` and :func:`compileall.compile_file` could
+  be :class:`bytes`.
+
+- bpo-25377: Clarify use of octal format of mode argument in help(os.chmod)
+  as well as help(os.fchmod)
+
+Tests
+-----
+
+- gh-issue-100454: Start running SSL tests with OpenSSL 3.1.0-beta1.
+
+- gh-issue-100086: The Python test runner (libregrtest) now logs Python
+  build information like "debug" vs "release" build, or LTO and PGO
+  optimizations. Patch by Victor Stinner.
+
+- gh-issue-93018: Make two tests forgiving towards host system libexpat with
+  backported security fixes applied.
+
+Build
+-----
+
+- gh-issue-100540: Removed the ``--with-system-ffi`` ``configure`` option;
+  ``libffi`` must now always be supplied by the system on all non-Windows
+  platforms.  The option has had no effect on non-Darwin platforms for
+  several releases, and in 3.11 only had the non-obvious effect of invoking
+  ``pkg-config`` to find ``libffi`` and never setting
+  ``-DUSING_APPLE_OS_LIBFFI``.  Now on Darwin platforms ``configure`` will
+  first check for the OS ``libffi`` and then fall back to the same
+  processing as other platforms if it is not found.
+
+- gh-issue-88267: Avoid exporting Python symbols in linked Windows
+  applications when the core is built as static.
+
+- bpo-41916: Allow override of ac_cv_cxx_thread so that cross compiled
+  python can set -pthread for CXX.
+
+Windows
+-------
+
+- gh-issue-100180: Update Windows installer to OpenSSL 1.1.1s
+
+- gh-issue-99191: Use ``_MSVC_LANG >= 202002L`` instead of less-precise
+  ``_MSC_VER >=1929`` to more accurately test for C++20 support in
+  :file:`PC/_wmimodule.cpp`.
+
+- gh-issue-79218: Define ``MS_WIN64`` for Mingw-w64 64bit, fix cython
+  compilation failure.
+
+- gh-issue-99941: Ensure that :func:`asyncio.Protocol.data_received`
+  receives an immutable :class:`bytes` object (as documented), instead of
+  :class:`bytearray`.
+
+- bpo-43984: :meth:`winreg.SetValueEx` now leaves the target value untouched
+  in the case of conversion errors. Previously, ``-1`` would be written in
+  case of such errors.
+
+- bpo-34816: ``hasattr(ctypes.windll, 'nonexistant')`` now returns ``False``
+  instead of raising :exc:`OSError`.
+
+macOS
+-----
+
+- gh-issue-100180: Update macOS installer to OpenSSL 1.1.1s
+
+- gh-issue-100540: Removed obsolete ``dlfcn.h`` shim from the ``_ctypes``
+  extension module, which has not been necessary since Mac OS X 10.2.
+
+Tools/Demos
+-----------
+
+- bpo-45256: Fix a bug that caused an :exc:`AttributeError` to be raised in
+  ``python-gdb.py`` when ``py-locals`` is used without a frame.
+
+- gh-issue-100342: Add missing ``NULL`` check for possible allocation
+  failure in ``*args`` parsing in Argument Clinic.
+
+C API
+-----
+
+- gh-issue-99947: Raising SystemError on import will now have its cause be
+  set to the original unexpected exception.
+
+- gh-issue-99240: In argument parsing, after deallocating newly allocated
+  memory, reset its pointer to NULL.
+
+- gh-issue-98724: The :c:macro:`Py_CLEAR`, :c:macro:`Py_SETREF` and
+  :c:macro:`Py_XSETREF` macros now only evaluate their arguments once. If an
+  argument has side effects, these side effects are no longer duplicated.
+  Patch by Victor Stinner.
+
+
 What's New in Python 3.12.0 alpha 3?
 ====================================
 
@@ -627,11 +1064,12 @@ Library
 - gh-issue-94172: :mod:`ftplib`: Remove the ``FTP_TLS.ssl_version`` class
   attribute: use the *context* parameter instead. Patch by Victor Stinner
 
-- gh-issue-94172: Remove the *keyfile*, *certfile* and *check_hostname*
-  parameters, deprecated since Python 3.6, in modules: :mod:`ftplib`,
-  :mod:`http.client`, :mod:`imaplib`, :mod:`poplib` and :mod:`smtplib`. Use
-  the *context* parameter (*ssl_context* in :mod:`imaplib`) instead. Patch
-  by Victor Stinner.
+- gh-issue-94172: Remove the *keyfile* and *certfile* parameters from the
+  :mod:`ftplib`, :mod:`imaplib`, :mod:`poplib` and :mod:`smtplib` modules,
+  and the *key_file*, *cert_file* and *check_hostname* parameters from the
+  :mod:`http.client` module, all deprecated since Python 3.6. Use the
+  *context* parameter (*ssl_context* in :mod:`imaplib`) instead. Patch by
+  Victor Stinner.
 
 - gh-issue-83638: Add the :attr:`~sqlite3.Connection.autocommit` attribute
   to :class:`sqlite3.Connection` and the *autocommit* parameter to
@@ -6406,7 +6844,7 @@ Library
     use the :func:`inspect.signature` function and :class:`Signature` object
     directly.
 
-  * the undocumented ``Signature.from_callable`` and ``Signature.from_function``
+  * the undocumented ``Signature.from_builtin`` and ``Signature.from_function``
     functions, deprecated since Python 3.5; use the
     :meth:`Signature.from_callable() <inspect.Signature.from_callable>` method
     instead.

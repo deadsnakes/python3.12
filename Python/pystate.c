@@ -461,6 +461,10 @@ interpreter_clear(PyInterpreterState *interp, PyThreadState *tstate)
         interp->dict_state.watchers[i] = NULL;
     }
 
+    for (int i=0; i < TYPE_MAX_WATCHERS; i++) {
+        interp->type_watchers[i] = NULL;
+    }
+
     for (int i=0; i < FUNC_MAX_WATCHERS; i++) {
         interp->func_watchers[i] = NULL;
     }
@@ -1298,10 +1302,7 @@ PyFrameObject*
 PyThreadState_GetFrame(PyThreadState *tstate)
 {
     assert(tstate != NULL);
-    _PyInterpreterFrame *f = tstate->cframe->current_frame;
-    while (f && _PyFrame_IsIncomplete(f)) {
-        f = f->previous;
-    }
+    _PyInterpreterFrame *f = _PyThreadState_GetFrame(tstate);
     if (f == NULL) {
         return NULL;
     }
@@ -1427,9 +1428,7 @@ _PyThread_CurrentFrames(void)
         PyThreadState *t;
         for (t = i->threads.head; t != NULL; t = t->next) {
             _PyInterpreterFrame *frame = t->cframe->current_frame;
-            while (frame && _PyFrame_IsIncomplete(frame)) {
-                frame = frame->previous;
-            }
+            frame = _PyFrame_GetFirstComplete(frame);
             if (frame == NULL) {
                 continue;
             }
