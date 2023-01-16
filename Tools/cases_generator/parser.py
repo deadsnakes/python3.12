@@ -62,7 +62,8 @@ class Block(Node):
 @dataclass
 class StackEffect(Node):
     name: str
-    # TODO: type, condition
+    type: str = ""
+    # TODO: array, condition
 
 
 @dataclass
@@ -83,7 +84,8 @@ UOp = OpName | CacheEffect
 
 @dataclass
 class InstHeader(Node):
-    kind: Literal["inst", "op"]
+    register: bool
+    kind: Literal["inst", "op", "legacy"]  # Legacy means no (inputs -- outputs)
     name: str
     inputs: list[InputEffect]
     outputs: list[OutputEffect]
@@ -91,7 +93,8 @@ class InstHeader(Node):
 
 @dataclass
 class InstDef(Node):
-    kind: Literal["inst", "op"]
+    register: bool
+    kind: Literal["inst", "op", "legacy"]
     name: str
     inputs: list[InputEffect]
     outputs: list[OutputEffect]
@@ -133,30 +136,33 @@ class Parser(PLexer):
     def inst_def(self) -> InstDef | None:
         if hdr := self.inst_header():
             if block := self.block():
-                return InstDef(hdr.kind, hdr.name, hdr.inputs, hdr.outputs, block)
+                return InstDef(
+                    hdr.register, hdr.kind, hdr.name, hdr.inputs, hdr.outputs, block
+                )
             raise self.make_syntax_error("Expected block")
         return None
 
     @contextual
     def inst_header(self) -> InstHeader | None:
         # inst(NAME)
-        #   | inst(NAME, (inputs -- outputs))
-        #   | op(NAME, (inputs -- outputs))
+        #   | [register] inst(NAME, (inputs -- outputs))
+        #   | [register] op(NAME, (inputs -- outputs))
         # TODO: Make INST a keyword in the lexer.
+        register = bool(self.expect(lx.REGISTER))
         if (tkn := self.expect(lx.IDENTIFIER)) and (kind := tkn.text) in ("inst", "op"):
             if self.expect(lx.LPAREN) and (tkn := self.expect(lx.IDENTIFIER)):
                 name = tkn.text
                 if self.expect(lx.COMMA):
-                    inp, outp = self.stack_effect()
+                    inp, outp = self.io_effect()
                     if self.expect(lx.RPAREN):
                         if (tkn := self.peek()) and tkn.kind == lx.LBRACE:
-                            return InstHeader(kind, name, inp, outp)
+                            return InstHeader(register, kind, name, inp, outp)
                 elif self.expect(lx.RPAREN) and kind == "inst":
                     # No legacy stack effect if kind is "op".
-                    return InstHeader(kind, name, [], [])
+                    return InstHeader(register, "legacy", name, [], [])
         return None
 
-    def stack_effect(self) -> tuple[list[InputEffect], list[OutputEffect]]:
+    def io_effect(self) -> tuple[list[InputEffect], list[OutputEffect]]:
         # '(' [inputs] '--' [outputs] ')'
         if self.expect(lx.LPAREN):
             inputs = self.inputs() or []
@@ -181,23 +187,7 @@ class Parser(PLexer):
 
     @contextual
     def input(self) -> InputEffect | None:
-        # IDENTIFIER '/' INTEGER (CacheEffect)
-        # IDENTIFIER (StackEffect)
-        if tkn := self.expect(lx.IDENTIFIER):
-            if self.expect(lx.DIVIDE):
-                if num := self.expect(lx.NUMBER):
-                    try:
-                        size = int(num.text)
-                    except ValueError:
-                        raise self.make_syntax_error(
-                            f"Expected integer, got {num.text!r}"
-                        )
-                    else:
-                        return CacheEffect(tkn.text, size)
-                raise self.make_syntax_error("Expected integer")
-            else:
-                # TODO: Arrays, conditions
-                return StackEffect(tkn.text)
+        return self.cache_effect() or self.stack_effect()
 
     def outputs(self) -> list[OutputEffect] | None:
         # output (, output)*
@@ -214,8 +204,30 @@ class Parser(PLexer):
 
     @contextual
     def output(self) -> OutputEffect | None:
+        return self.stack_effect()
+
+    @contextual
+    def cache_effect(self) -> CacheEffect | None:
+        # IDENTIFIER '/' NUMBER
         if tkn := self.expect(lx.IDENTIFIER):
-            return StackEffect(tkn.text)
+            if self.expect(lx.DIVIDE):
+                num = self.require(lx.NUMBER).text
+                try:
+                    size = int(num)
+                except ValueError:
+                    raise self.make_syntax_error(f"Expected integer, got {num!r}")
+                else:
+                    return CacheEffect(tkn.text, size)
+
+    @contextual
+    def stack_effect(self) -> StackEffect | None:
+        # IDENTIFIER [':' IDENTIFIER]
+        # TODO: Arrays, conditions
+        if tkn := self.expect(lx.IDENTIFIER):
+            type = ""
+            if self.expect(lx.COLON):
+                type = self.require(lx.IDENTIFIER).text
+            return StackEffect(tkn.text, type)
 
     @contextual
     def super_def(self) -> Super | None:
