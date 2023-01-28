@@ -1,3 +1,9 @@
+python3.12 (3.12.0~a4-1+focal2) focal; urgency=medium
+
+  * adjust sysconfig paths to match debian
+
+ -- Anthony Sottile <asottile@umich.edu>  Sat, 28 Jan 2023 13:12:23 -0500
+
 python3.12 (3.12.0~a4-1+focal1) focal; urgency=medium
 
   * Python 3.12.0 alpha 4 release.
