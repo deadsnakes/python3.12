@@ -2,6 +2,267 @@
 Python News
 +++++++++++
 
+What's New in Python 3.12.0 alpha 5?
+====================================
+
+*Release date: 2023-02-07*
+
+Security
+--------
+
+- gh-issue-99108: Replace the builtin :mod:`hashlib` implementations of
+  SHA2-224 and SHA2-256 originally from LibTomCrypt with formally verified,
+  side-channel resistant code from the `HACL*
+  <https://github.com/hacl-star/hacl-star/>`_ project. The builtins remain a
+  fallback only used when OpenSSL does not provide them.
+
+Core and Builtins
+-----------------
+
+- gh-issue-92173: Fix the ``defs`` and ``kwdefs`` arguments to
+  :c:func:`PyEval_EvalCodeEx` and a reference leak in that function.
+
+- gh-issue-59956: The GILState API is now partially compatible with
+  subinterpreters. Previously, ``PyThreadState_GET()`` and
+  ``PyGILState_GetThisThreadState()`` would get out of sync, causing
+  inconsistent behavior and crashes.
+
+- gh-issue-101400: Fix wrong lineno in exception message on
+  :keyword:`continue` or :keyword:`break` which are not in a loop. Patch by
+  Dong-hee Na.
+
+- gh-issue-101372: Fix :func:`~unicodedata.is_normalized` to properly handle
+  the UCD 3.2.0 cases. Patch by Dong-hee Na.
+
+- gh-issue-101266: Fix :func:`sys.getsizeof` reporting for :class:`int`
+  subclasses.
+
+- gh-issue-101291: Refactor the ``PyLongObject`` struct into a normal Python
+  object header and a ``PyLongValue`` struct.
+
+- gh-issue-101046: Fix a possible memory leak in the parser when raising
+  :exc:`MemoryError`. Patch by Pablo Galindo
+
+- gh-issue-101037: Fix potential memory underallocation issue for instances
+  of :class:`int` subclasses with value zero.
+
+- gh-issue-100762: Record the (virtual) exception block depth in the oparg
+  of :opcode:`YIELD_VALUE`. Use this to avoid the expensive ``throw()`` when
+  closing generators (and coroutines) that can be closed trivially.
+
+- gh-issue-100982: Adds a new :opcode:`COMPARE_AND_BRANCH` instruction. This
+  is a bit more efficient when performing a comparison immediately followed
+  by a branch, and restores the design intent of PEP 659 that
+  specializations are local to a single instruction.
+
+- gh-issue-100942: Fixed segfault in property.getter/setter/deleter that
+  occurred when a property subclass overrode the ``__new__`` method to
+  return a non-property instance.
+
+- gh-issue-100923: Remove the ``mask`` cache entry for the
+  :opcode:`COMPARE_OP` instruction and embed the mask into the oparg.
+
+- gh-issue-100892: Fix race while iterating over thread states in clearing
+  :class:`threading.local`. Patch by Kumar Aditya.
+
+- gh-issue-91351: Fix a case where re-entrant imports could corrupt the
+  import deadlock detection code and cause a :exc:`KeyError` to be raised
+  out of :mod:`importlib/_bootstrap`.  In addition to the straightforward
+  cases, this could also happen when garbage collection leads to a warning
+  being emitted -- as happens when it collects an open socket or file)
+
+- gh-issue-100726: Optimize construction of ``range`` object for medium size
+  integers.
+
+- gh-issue-100712: Added option to build cpython with specialization
+  disabled, by setting ``ENABLE_SPECIALIZATION=False`` in :mod:`opcode`,
+  followed by ``make regen-all``.
+
+- bpo-32780: Inter-field padding is now inserted into the PEP3118 format
+  strings obtained from :class:`ctypes.Structure` objects, reflecting their
+  true representation in memory.
+
+Library
+-------
+
+- gh-issue-101541: [Enum] - fix psuedo-flag creation
+
+- gh-issue-101570: Upgrade pip wheel bundled with ensurepip (pip 23.0)
+
+- gh-issue-101323: Fix a bug where errors where not thrown by
+  zlib._ZlibDecompressor if encountered during decompressing.
+
+- gh-issue-101317: Add *ssl_shutdown_timeout* parameter for
+  :meth:`asyncio.StreamWriter.start_tls`.
+
+- gh-issue-101326: Fix regression when passing ``None`` as second or third
+  argument to ``FutureIter.throw``.
+
+- gh-issue-92123: Adapt the ``_elementtree`` extension module to multi-phase
+  init (:pep:`489`). Patches by Erlend E. Aasland.
+
+- gh-issue-100795: Avoid potential unexpected ``freeaddrinfo`` call (double
+  free) in :mod:`socket` when when a libc ``getaddrinfo()`` implementation
+  leaves garbage in an output pointer when returning an error. Original
+  patch by Sergey G. Brester.
+
+- gh-issue-101143: Remove unused references to :class:`~asyncio.TimerHandle`
+  in ``asyncio.base_events.BaseEventLoop._add_callback``.
+
+- gh-issue-101144: Make :func:`zipfile.Path.open` and
+  :func:`zipfile.Path.read_text` also accept ``encoding`` as a positional
+  argument. This was the behavior in Python 3.9 and earlier.  3.10
+  introduced a regression where supplying it as a positional argument would
+  lead to a :exc:`TypeError`.
+
+- gh-issue-94518: Group-related variables of ``_posixsubprocess`` module are
+  renamed to stress that supplimentary group affinity is added to a fork,
+  not replace the inherited ones. Patch by Oleg Iarygin.
+
+- gh-issue-101015: Fix :func:`typing.get_type_hints` on ``'*tuple[...]'``
+  and ``*tuple[...]``. It must not drop the ``Unpack`` part.
+
+- gh-issue-101000: Add :func:`os.path.splitroot()`, which splits a path into
+  a 3-item tuple ``(drive, root, tail)``. This new function is used by
+  :mod:`pathlib` to improve the performance of path construction by up to a
+  third.
+
+- gh-issue-100573: Fix a Windows :mod:`asyncio` bug with named pipes where a
+  client doing ``os.stat()`` on the pipe would cause an error in the server
+  that disabled serving future requests.
+
+- gh-issue-39615: :func:`warnings.warn` now has the ability to skip stack
+  frames based on code filename prefix rather than only a numeric
+  ``stacklevel`` via the new ``skip_file_prefixes`` keyword argument.
+
+- gh-issue-100750: pass encoding kwarg to subprocess in platform
+
+- gh-issue-100160: Emit a deprecation warning in
+  :meth:`asyncio.DefaultEventLoopPolicy.get_event_loop` if there is no
+  current event loop set and it decides to create one.
+
+- gh-issue-96290: Fix handling of partial and invalid UNC drives in
+  ``ntpath.splitdrive()``, and in ``ntpath.normpath()`` on non-Windows
+  systems. Paths such as '\\server' and '\\' are now considered by
+  ``splitdrive()`` to contain only a drive, and consequently are not
+  modified by ``normpath()`` on non-Windows systems. The behaviour of
+  ``normpath()`` on Windows systems is unaffected, as native OS APIs are
+  used. Patch by Eryk Sun, with contributions by Barney Gale.
+
+- gh-issue-99952: Fix a reference undercounting issue in
+  :class:`ctypes.Structure` with ``from_param()`` results larger than a C
+  pointer.
+
+- gh-issue-67790: Add float-style formatting support for
+  :class:`fractions.Fraction` instances.
+
+- gh-issue-99266: Preserve more detailed error messages in :mod:`ctypes`.
+
+- gh-issue-86682: Ensure runtime-created collections have the correct module
+  name using the newly added (internal) :func:`sys._getframemodulename`.
+
+- gh-issue-88597: :mod:`uuid` now has a command line interface. Try ``python
+  -m uuid -h``.
+
+- gh-issue-60580: :data:`ctypes.wintypes.BYTE` definition changed from
+  :data:`~ctypes.c_byte` to :data:`~ctypes.c_ubyte` to match Windows SDK.
+  Patch by Anatoly Techtonik and Oleg Iarygin.
+
+- gh-issue-94518: ``_posixsubprocess`` now initializes all UID and GID
+  variables using a reserved ``-1`` value instead of a separate flag. Patch
+  by Oleg Iarygin.
+
+- bpo-38941: The :mod:`xml.etree.ElementTree` module now emits
+  :exc:`DeprecationWarning` when testing the truth value of an
+  :class:`xml.etree.ElementTree.Element`. Before, the Python implementation
+  emitted :exc:`FutureWarning`, and the C implementation emitted nothing.
+
+- bpo-40077: Convert :mod:`elementtree` types to heap types. Patch by Erlend
+  E. Aasland.
+
+- bpo-29847: Fix a bug where :class:`pathlib.Path` accepted and ignored
+  keyword arguments. Patch provided by Yurii Karabas.
+
+- gh-issue-77772: :class:`ctypes.CDLL`, :class:`ctypes.OleDLL`,
+  :class:`ctypes.WinDLL`, and :class:`ctypes.PyDLL` now accept
+  :term:`path-like objects <path-like object>` as their ``name`` argument.
+  Patch by Robert Hoelzl.
+
+Documentation
+-------------
+
+- gh-issue-88324: Reword :mod:`subprocess` to emphasize default behavior of
+  *stdin*, *stdout*, and *stderr* arguments. Remove inaccurate statement
+  about child file handle inheritance.
+
+Tests
+-----
+
+- gh-issue-101334: ``test_tarfile`` has been updated to pass when run as a
+  high UID.
+
+Build
+-----
+
+- gh-issue-101282: Update BOLT configration not to use depreacted usage of
+  ``--split functions``. Patch by Dong-hee Na.
+
+- gh-issue-101522: Allow overriding Windows dependencies versions and paths
+  using MSBuild properties.
+
+- gh-issue-77532: Minor fixes to allow building with
+  ``PlatformToolset=ClangCL`` on Windows.
+
+- gh-issue-101152: In accordance with :PEP:`699`, the ``ma_version_tag``
+  field in :c:type:`PyDictObject` is deprecated for extension modules.
+  Accessing this field will generate a compiler warning at compile time.
+  This field will be removed in Python 3.14.
+
+- gh-issue-100340: Allows -Wno-int-conversion for wasm-sdk 17 and onwards,
+  thus enables building WASI builds once against the latest sdk.
+
+- gh-issue-101060: Conditionally add ``-fno-reorder-blocks-and-partition``
+  in configure. Effectively fixes ``--enable-bolt`` when using Clang, as
+  this appears to be a GCC-only flag.
+
+- gh-issue-98705: ``__bool__`` is defined in AIX system header files which
+  breaks the build in AIX, so undefine it.
+
+- gh-issue-98636: Fix a regression in detecting ``gdbm_compat`` library for
+  the ``_gdbm`` module build.
+
+- gh-issue-96305: ``_aix_support`` now uses a simple code to get platform
+  details rather than the now non-existent ``_bootsubprocess`` during
+  bootstrap.
+
+Windows
+-------
+
+- gh-issue-101543: Ensure the install path in the registry is only used when
+  the standard library hasn't been located in any other way.
+
+- gh-issue-101467: The ``py.exe`` launcher now correctly filters when only a
+  single runtime is installed. It also correctly handles prefix matches on
+  tags so that ``-3.1`` does not match ``3.11``, but would still match
+  ``3.1-32``.
+
+- gh-issue-99834: Updates bundled copy of Tcl/Tk to 8.6.13.0
+
+- gh-issue-101135: Restore ability to launch older 32-bit versions from the
+  :file:`py.exe` launcher when both 32-bit and 64-bit installs of the same
+  version are available.
+
+- gh-issue-82052: Fixed an issue where writing more than 32K of Unicode
+  output to the console screen in one go can result in mojibake.
+
+- gh-issue-100320: Ensures the ``PythonPath`` registry key from an install
+  is used when launching from a different copy of Python that relies on an
+  existing install to provide a copy of its modules and standard library.
+
+- gh-issue-100247: Restores support for the :file:`py.exe` launcher finding
+  shebang commands in its configuration file using the full command name.
+
+
 What's New in Python 3.12.0 alpha 4?
 ====================================
 
