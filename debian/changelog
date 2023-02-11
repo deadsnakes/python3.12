@@ -1,3 +1,9 @@
+python3.12 (3.12.0~a5-1+focal1) focal; urgency=medium
+
+  * Python 3.12.0 alpha 5 release.
+
+ -- Anthony Sottile <asottile@umich.edu>  Sat, 11 Feb 2023 14:51:48 -0500
+
 python3.12 (3.12.0~a4-1+focal2) focal; urgency=medium
 
   * adjust sysconfig paths to match debian
