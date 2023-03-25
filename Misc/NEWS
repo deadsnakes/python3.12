@@ -2,6 +2,332 @@
 Python News
 +++++++++++
 
+What's New in Python 3.12.0 alpha 6?
+====================================
+
+*Release date: 2023-03-07*
+
+Security
+--------
+
+- gh-issue-99108: Replace builtin hashlib implementations of MD5 and SHA1
+  with verified ones from the HACL* project.
+
+- gh-issue-101727: Updated the OpenSSL version used in Windows and macOS
+  binary release builds to 1.1.1t to address CVE-2023-0286, CVE-2022-4303,
+  and CVE-2022-4303 per `the OpenSSL 2023-02-07 security advisory
+  <https://www.openssl.org/news/secadv/20230207.txt>`_.
+
+- gh-issue-99108: Replace the builtin :mod:`hashlib` implementations of
+  SHA2-384 and SHA2-512 originally from LibTomCrypt with formally verified,
+  side-channel resistant code from the `HACL*
+  <https://github.com/hacl-star/hacl-star/>`_ project. The builtins remain a
+  fallback only used when OpenSSL does not provide them.
+
+- gh-issue-101283: :class:`subprocess.Popen` now uses a safer approach to
+  find ``cmd.exe`` when launching with ``shell=True``. Patch by Eryk Sun,
+  based on a patch by Oleg Iarygin.
+
+Core and Builtins
+-----------------
+
+- gh-issue-102493: Fix regression in semantics of normalisation in
+  ``PyErr_SetObject``.
+
+- gh-issue-102416: Do not memoize incorrectly automatically generated loop
+  rules in the parser. Patch by Pablo Galindo.
+
+- gh-issue-102356: Fix a bug that caused a crash when deallocating deeply
+  nested filter objects. Patch by Marta Gómez Macías.
+
+- gh-issue-102336: Cleanup Windows 7 specific special handling. Patch by Max
+  Bachmann.
+
+- gh-issue-102250: Fixed a segfault occurring when the interpreter calls a
+  ``__bool__`` method that raises.
+
+- gh-issue-102126: Fix deadlock at shutdown when clearing thread states if
+  any finalizer tries to acquire the runtime head lock. Patch by Kumar
+  Aditya.
+
+- gh-issue-102027: Use ``GetCurrentProcessId`` on Windows when ``getpid`` is
+  unavailable. Patch by Max Bachmann.
+
+- gh-issue-102056: Fix error handling bugs in interpreter's exception
+  printing code, which could cause a crash on infinite recursion.
+
+- gh-issue-100982: Restrict the scope of the :opcode:`FOR_ITER_RANGE`
+  instruction to the scope of the original :opcode:`FOR_ITER` instruction,
+  to allow instrumentation.
+
+- gh-issue-101967: Fix possible segfault in
+  ``positional_only_passed_as_keyword`` function, when new list created.
+
+- gh-issue-101952: Fix possible segfault in ``BUILD_SET`` opcode, when new
+  set created.
+
+- gh-issue-74895: :mod:`socket.getaddrinfo` no longer raises
+  :class:`OverflowError` for :class:`int` **port** values outside of the C
+  long range. Out of range values are left up to the underlying string based
+  C library API to report. A :class:`socket.gaierror` ``SAI_SERVICE`` may
+  occur instead, or no error at all as not all platform C libraries generate
+  an error.
+
+- gh-issue-101799: Add :opcode:`CALL_INTRINSIC_2` and use it instead of
+  :opcode:`PREP_RERAISE_STAR`.
+
+- gh-issue-101857: Fix xattr support detection on Linux systems by widening
+  the check to linux, not just glibc. This fixes support for musl.
+
+- gh-issue-84783: Make the slice object hashable.
+
+- gh-issue-87849: Change the ``SEND`` instruction to leave the receiver on
+  the stack. This allows the specialized form of ``SEND`` to skip the chain
+  of C calls and jump directly to the ``RESUME`` in the generator or
+  coroutine.
+
+- gh-issue-101765: Fix SystemError / segmentation fault in iter
+  ``__reduce__`` when internal access of ``builtins.__dict__`` keys mutates
+  the iter object.
+
+- gh-issue-101430: Update :mod:`tracemalloc` to handle presize of object
+  properly. Patch by Dong-hee Na.
+
+- gh-issue-101696: Invalidate type version tag in ``_PyStaticType_Dealloc``
+  for static types, avoiding bug where a false cache hit could crash the
+  interpreter. Patch by Kumar Aditya.
+
+- gh-issue-101632: Adds a new :opcode:`RETURN_CONST` instruction.
+
+- gh-issue-100719: Remove gi_code field from generator (and coroutine and
+  async generator) objects as it is redundant. The frame already includes a
+  reference to the code object.
+
+- gh-issue-98627: When an interpreter is configured to check (and only
+  then), importing an extension module will now fail when the extension does
+  not support multiple interpreters (i.e. doesn't implement PEP 489
+  multi-phase init). This does not apply to the main interpreter, nor to
+  subinterpreters created with ``Py_NewInterpreter()``.
+
+Library
+-------
+
+- gh-issue-102302: Micro-optimise hashing of :class:`inspect.Parameter`,
+  reducing the time it takes to hash an instance by around 40%.
+
+- gh-issue-101979: Fix a bug where parentheses in the ``metavar`` argument
+  to :meth:`argparse.ArgumentParser.add_argument` were dropped. Patch by
+  Yeojin Kim.
+
+- gh-issue-91038: :meth:`platform.platform` now has boolean default
+  arguments.
+
+- gh-issue-81652: Add :data:`mmap.MAP_ALIGNED_SUPER` FreeBSD and
+  :data:`mmap.MAP_CONCEAL` OpenBSD constants to :mod:`mmap`. Patch by Yeojin
+  Kim.
+
+- gh-issue-102179: Fix :func:`os.dup2` error message for negative fds.
+
+- gh-issue-101961: For the binary mode, :func:`fileinput.hookcompressed`
+  doesn't set the ``encoding`` value even if the value is ``None``. Patch by
+  Gihwan Kim.
+
+- gh-issue-101936: The default value of ``fp`` becomes :class:`io.BytesIO`
+  if :exc:`~urllib.error.HTTPError` is initialized without a designated
+  ``fp`` parameter. Patch by Long Vo.
+
+- gh-issue-101566: In zipfile, sync Path with `zipp 3.14
+  <https://zipp.readthedocs.io/en/latest/history.html#v3-14-0>`_, including
+  fix for extractall on the underlying zipfile after being wrapped in
+  ``Path``.
+
+- gh-issue-97930: Apply changes from `importlib_resources 5.12
+  <https://importlib-resources.readthedocs.io/en/latest/history.html#v5-12-0>`_,
+  including fix for ``MultiplexedPath`` to support directories in multiple
+  namespaces (python/importlib_resources#265).
+
+- gh-issue-101997: Upgrade pip wheel bundled with ensurepip (pip 23.0.1)
+
+- gh-issue-99108: The built-in extension modules for :mod:`hashlib` SHA2
+  algorithms, used when OpenSSL does not provide them, now live in a single
+  internal ``_sha2`` module instead of separate ``_sha256`` and ``_sha512``
+  modules.
+
+- gh-issue-101892: Callable iterators no longer raise :class:`SystemError`
+  when the callable object exhausts the iterator but forgets to either
+  return a sentinel value or raise :class:`StopIteration`.
+
+- gh-issue-87634: Remove locking behavior from
+  :func:`functools.cached_property`.
+
+- gh-issue-97786: Fix potential undefined behaviour in corner cases of
+  floating-point-to-time conversions.
+
+- gh-issue-101517: Fixed bug where :mod:`bdb` looks up the source line with
+  :mod:`linecache` with a ``lineno=None``, which causes it to fail with an
+  unhandled exception.
+
+- gh-issue-101773: Optimize :class:`fractions.Fraction` for small
+  components. The private argument ``_normalize`` of the
+  :class:`fractions.Fraction` constructor has been removed.
+
+- gh-issue-101693: In :meth:`sqlite3.Cursor.execute`,
+  :exc:`DeprecationWarning` is now emitted when :ref:`named placeholders
+  <sqlite3-placeholders>` are used together with parameters supplied as a
+  :term:`sequence` instead of as a :class:`dict`. Starting from Python 3.14,
+  using named placeholders with parameters supplied as a sequence will raise
+  a :exc:`~sqlite3.ProgrammingError`. Patch by Erlend E. Aasland.
+
+- gh-issue-101446: Change repr of :class:`collections.OrderedDict` to use
+  regular dictionary formating instead of pairs of keys and values.
+
+- gh-issue-101362: Speed up :class:`pathlib.PurePath` construction by
+  handling arguments more uniformly. When a :class:`pathlib.Path` argument
+  is supplied, we use its string representation rather than joining its
+  parts with :func:`os.path.join`.
+
+- gh-issue-101362: Speed up :class:`pathlib.PurePath` construction by
+  calling :func:`os.path.join` only when two or more arguments are given.
+
+- gh-issue-101362: Speed up :class:`pathlib.Path` construction by running
+  the path flavour compatibility check only when pathlib is imported.
+
+- gh-issue-85984: Refactored the implementation of :func:`pty.fork` to use
+  :func:`os.login_tty`.
+
+  A :exc:`DeprecationWarning` is now raised by ``pty.master_open()`` and
+  ``pty.slave_open()``. They were undocumented and deprecated long long ago
+  in the docstring in favor of :func:`pty.openpty`.
+
+- gh-issue-101561: Add a new decorator :func:`typing.override`. See
+  :pep:`698` for details. Patch by Steven Troxler.
+
+- gh-issue-63301: Set exit code when :mod:`tabnanny` CLI exits on error.
+
+- gh-issue-101360: Fix anchor matching in
+  :meth:`pathlib.PureWindowsPath.match`. Path and pattern anchors are now
+  matched with :mod:`fnmatch`, just like other path parts. This allows
+  patterns such as ``"*:/Users/*"`` to be matched.
+
+- gh-issue-101277: Remove global state from :mod:`itertools` module
+  (:pep:`687`). Patches by Erlend E. Aasland.
+
+- gh-issue-100809: Fix handling of drive-relative paths (like 'C:' and
+  'C:foo') in :meth:`pathlib.Path.absolute`. This method now uses the OS API
+  to retrieve the correct current working directory for the drive.
+
+- gh-issue-99138: Apply :pep:`687` to :mod:`zoneinfo`. Patch by Erlend E.
+  Aasland.
+
+- gh-issue-96764: :func:`asyncio.wait_for` now uses :func:`asyncio.timeout`
+  as its underlying implementation. Patch by Kumar Aditya.
+
+- gh-issue-88233: Correctly preserve "extra" fields in ``zipfile``
+  regardless of their ordering relative to a zip64 "extra."
+
+- bpo-23224: Fix segfaults when creating :class:`lzma.LZMADecompressor` and
+  :class:`bz2.BZ2Decompressor` objects without calling ``__init__()``, and
+  fix leakage of locks and internal buffers when calling the ``__init__()``
+  methods of :class:`lzma.LZMADecompressor`, :class:`lzma.LZMACompressor`,
+  :class:`bz2.BZ2Compressor`, and :class:`bz2.BZ2Decompressor` objects
+  multiple times.
+
+Documentation
+-------------
+
+- gh-issue-85417: Update :mod:`cmath` documentation to clarify behaviour on
+  branch cuts.
+
+- gh-issue-97725: Fix :meth:`asyncio.Task.print_stack` description for
+  ``file=None``. Patch by Oleg Iarygin.
+
+Tests
+-----
+
+- gh-issue-102019: Fix deadlock on shutdown if
+  ``test_current_{exception,frames}`` fails. Patch by Jacob Bower.
+
+- gh-issue-85984: Utilize new "winsize" functions from termios in pty tests.
+
+- gh-issue-89792: ``test_tools`` now copies up to 10x less source data to a
+  temporary directory during the ``freeze`` test by ignoring git metadata
+  and other artifacts.  It also limits its python build parallelism based on
+  os.cpu_count instead of hard coding it as 8 cores.
+
+Build
+-----
+
+- gh-issue-99942: On Android, in a static build, python-config in embed mode
+  no longer incorrectly reports a library to link to.
+
+- gh-issue-99942: On Android, python.pc now correctly reports the library to
+  link to, the same as python-config.sh.
+
+- gh-issue-100221: Fix creating install directories in ``make
+  sharedinstall`` if they exist outside ``DESTDIR`` already.
+
+- gh-issue-96821: Explicitly mark C extension modules that need defined
+  signed integer overflow, and add a configure option
+  :option:`--with-strict-overflow`. Patch by Matthias Görgens and Shantanu
+  Jain.
+
+Windows
+-------
+
+- gh-issue-102344: Implement ``winreg.QueryValue`` using ``QueryValueEx``
+  and ``winreg.SetValue`` using ``SetValueEx``. Patch by Max Bachmann.
+
+- gh-issue-101881: Handle read and write operations on non-blocking pipes
+  properly on Windows.
+
+- gh-issue-101881: Add support for the os.get_blocking() and
+  os.set_blocking() functions on Windows.
+
+- gh-issue-101849: Ensures installer will correctly upgrade existing
+  ``py.exe`` launcher installs.
+
+- gh-issue-101763: Updates copy of libffi bundled with Windows installs to
+  3.4.4.
+
+- gh-issue-101759: Update Windows installer to SQLite 3.40.1.
+
+- gh-issue-101614: Correctly handle extensions built against debug binaries
+  that reference ``python3_d.dll``.
+
+- gh-issue-101196: The functions ``os.path.isdir``, ``os.path.isfile``,
+  ``os.path.islink`` and ``os.path.exists`` are now 13% to 28% faster on
+  Windows, by making fewer Win32 API calls.
+
+macOS
+-----
+
+- gh-issue-101759: Update macOS installer to SQLite 3.40.1.
+
+C API
+-----
+
+- gh-issue-101907: Removes use of non-standard C++ extension in public
+  header files.
+
+- gh-issue-99293: Document that the Py_TPFLAGS_VALID_VERSION_TAG is an
+  internal feature, should not be used, and will be removed.
+
+- gh-issue-101578: Add :c:func:`PyErr_GetRaisedException` and
+  :c:func:`PyErr_SetRaisedException` for saving and restoring the current
+  exception. These functions return and accept a single exception object,
+  rather than the triple arguments of the now-deprecated
+  :c:func:`PyErr_Fetch` and :c:func:`PyErr_Restore`. This is less error
+  prone and a bit more efficient.
+
+  Add :c:func:`PyException_GetArgs` and :c:func:`PyException_SetArgs` as
+  convenience functions for retrieving and modifying the
+  :attr:`~BaseException.args` passed to the exception's constructor.
+
+- gh-issue-91744: Introduced the *Unstable C API tier*, marking APi that is
+  allowed to change in minor releases without a deprecation period. See
+  :pep:`689` for details.
+
+
 What's New in Python 3.12.0 alpha 5?
 ====================================
 
@@ -1462,7 +1788,7 @@ C API
 
 - gh-issue-98610: Some configurable capabilities of sub-interpreters have
   changed. They always allow subprocesses (:mod:`subprocess`) now, whereas
-  before subprocesses could be optionally disaallowed for a sub-interpreter.
+  before subprocesses could be optionally disallowed for a sub-interpreter.
   Instead :func:`os.exec` can now be disallowed. Disallowing daemon threads
   is now supported.  Disallowing all threads is still allowed, but is never
   done by default. Note that the optional restrictions are only available
