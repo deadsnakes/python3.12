@@ -1,3 +1,9 @@
+python3.12 (3.12.0~a7-1+jammy1) jammy; urgency=medium
+
+  * Python 3.12.0 alpha 7 release.
+
+ -- Anthony Sottile <asottile@umich.edu>  Mon, 17 Apr 2023 19:30:26 -0400
+
 python3.12 (3.12.0~a6-1+jammy1) jammy; urgency=medium
 
   * Python 3.12.0 alpha 6 release.
