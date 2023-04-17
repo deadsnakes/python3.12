@@ -2,6 +2,299 @@
 Python News
 +++++++++++
 
+What's New in Python 3.12.0 alpha 7?
+====================================
+
+*Release date: 2023-04-04*
+
+Core and Builtins
+-----------------
+
+- gh-issue-102192: Deprecated ``_PyErr_ChainExceptions`` in favour of
+  ``_PyErr_ChainExceptions1``.
+
+- gh-issue-89987: Reduce the number of inline :opcode:`CACHE` entries for
+  :opcode:`BINARY_SUBSCR`.
+
+- gh-issue-102859: Removed :opcode:`JUMP_IF_FALSE_OR_POP` and
+  :opcode:`JUMP_IF_TRUE_OR_POP` instructions.
+
+- gh-issue-101975: Fixed ``stacktop`` value on tracing entries to avoid
+  corruption on garbage collection.
+
+- gh-issue-102778: Add :data:`sys.last_exc` and deprecate
+  :data:`sys.last_type`, :data:`sys.last_value` and
+  :data:`sys.last_traceback`, which hold the same information in its legacy
+  form.
+
+- gh-issue-100982: Replace all occurrences of ``COMPARE_AND_BRANCH`` with
+  :opcode:`COMPARE_OP`.
+
+- gh-issue-102701: Fix overflow when creating very large dict.
+
+- gh-issue-102755: Add :c:func:`PyErr_DisplayException` which takes just an
+  exception instance, to replace the legacy :c:func:`PyErr_Display` which
+  takes the ``(typ, exc, tb)`` triplet.
+
+- gh-issue-102594: Add note to exception raised in ``PyErr_SetObject`` when
+  normalization fails.
+
+- gh-issue-90997: Shrink the number of inline :opcode:`CACHE` entries used
+  by :opcode:`LOAD_GLOBAL`.
+
+- gh-issue-102491: Improve import time of ``platform`` by removing
+  IronPython version parsing. The IronPython version parsing was not
+  functional (see https://github.com/IronLanguages/ironpython3/issues/1667).
+
+- gh-issue-101291: Rearrage bits in first field (after header) of
+  PyLongObject. * Bits 0 and 1: 1 - sign. I.e. 0 for positive numbers, 1 for
+  zero and 2 for negative numbers. * Bit 2 reserved (probably for the
+  immortal bit) * Bits 3+ the unsigned size.
+
+  This makes a few operations slightly more efficient, and will enable a
+  more compact and faster 2s-complement representation of most ints in
+  future.
+
+- gh-issue-102397: Fix segfault from race condition in signal handling
+  during garbage collection. Patch by Kumar Aditya.
+
+- gh-issue-102406: :mod:`codecs` encoding/decoding errors now get the
+  context information (which operation and which codecs) attached as
+  :pep:`678` notes instead of through chaining a new instance of the
+  exception.
+
+- gh-issue-102281: Fix potential nullptr dereference and use of
+  uninitialized memory in fileutils. Patch by Max Bachmann.
+
+- gh-issue-102300: Reuse operands with refcount of 1 in float
+  specializations of BINARY_OP.
+
+- gh-issue-102213: Fix performance loss when accessing an object's
+  attributes with ``__getattr__``  defined.
+
+- gh-issue-102255: Improve build support for the Xbox. Patch by Max
+  Bachmann.
+
+- gh-issue-102027: Fix SSE2 and SSE3 detection in ``_blake2`` internal
+  module. Patch by Max Bachmann.
+
+- gh-issue-101865: Deprecate ``co_lnotab`` in code objects, schedule it for
+  removal in Python 3.14
+
+- bpo-1635741: Adapt :mod:`!_pickle` to :pep:`687`. Patch by Mohamed Koubaa
+  and Erlend Aasland.
+
+Library
+-------
+
+- gh-issue-103085: Pure python :func:`locale.getencoding()` will not warn
+  deprecation.
+
+- gh-issue-103068: It's no longer possible to register conditional
+  breakpoints in :class:`~pdb.Pdb` that raise :exc:`SyntaxError`. Patch by
+  Tian Gao.
+
+- gh-issue-102549: Don't ignore exceptions in member type creation.
+
+- gh-issue-103056: Ensure final ``_generate_next_value_`` is a
+  ``staticmethod``.
+
+- gh-issue-103046: Display current line label correctly in :mod:`dis` when
+  ``show_caches`` is False and ``lasti`` points to a CACHE entry.
+
+- gh-issue-102433: :func:`isinstance` checks against
+  :func:`runtime-checkable protocols <typing.runtime_checkable>` now use
+  :func:`inspect.getattr_static` rather than :func:`hasattr` to lookup
+  whether attributes exist. This means that descriptors and
+  :meth:`~object.__getattr__` methods are no longer unexpectedly evaluated
+  during ``isinstance()`` checks against runtime-checkable protocols.
+  However, it may also mean that some objects which used to be considered
+  instances of a runtime-checkable protocol may no longer be considered
+  instances of that protocol on Python 3.12+, and vice versa. Most users are
+  unlikely to be affected by this change. Patch by Alex Waygood.
+
+- gh-issue-103023: It's no longer possible to register expressions to
+  display in :class:`~pdb.Pdb` that raise :exc:`SyntaxError`. Patch by Tian
+  Gao.
+
+- gh-issue-102947: Improve traceback when :func:`dataclasses.fields` is
+  called on a non-dataclass. Patch by Alex Waygood
+
+- gh-issue-102780: The :class:`asyncio.Timeout` context manager now works
+  reliably even when performing cleanup due to task cancellation.
+  Previously it could raise a :exc:`~asyncio.CancelledError` instead of an
+  :exc:`~asyncio.TimeoutError` in such cases.
+
+- gh-issue-102871: Remove support for obsolete browsers from
+  :mod:`webbrowser`. Removed browsers include Grail, Mosaic, Netscape,
+  Galeon, Skipstone, Iceape, Firebird, and Firefox versions 35 and below.
+
+- gh-issue-102839: Improve performance of :func:`math.log` arguments
+  handling by removing the argument clinic.
+
+- gh-issue-102828: Add the ``onexc`` arg to :func:`shutil.rmtree`, which is
+  like ``onerror`` but expects an exception instance rather than an exc_info
+  tuple. Deprecate ``onerror``.
+
+- gh-issue-88965: typing: Fix a bug relating to substitution in custom
+  classes generic over a :class:`~typing.ParamSpec`. Previously, if the
+  ``ParamSpec`` was substituted with a parameters list that itself contained
+  a :class:`~typing.TypeVar`, the ``TypeVar`` in the parameters list could
+  not be subsequently substituted. This is now fixed.
+
+  Patch by Nikita Sobolev.
+
+- gh-issue-76846: Fix issue where ``__new__()`` and ``__init__()`` methods
+  of :class:`pathlib.PurePath` and :class:`~pathlib.Path` subclasses were
+  not called in some circumstances.
+
+- gh-issue-78530: :func:`asyncio.wait` now accepts generators yielding
+  tasks. Patch by Kumar Aditya.
+
+- gh-issue-102748: :func:`asyncio.iscoroutine` now returns ``False`` for
+  generators as :mod:`asyncio` does not support legacy generator-based
+  coroutines. Patch by Kumar Aditya.
+
+- gh-issue-102670: Optimized fmean(), correlation(), covariance(), and
+  linear_regression() using the new math.sumprod() function.
+
+- gh-issue-102615: Typing: Improve the ``repr`` of generic aliases for
+  classes generic over a :class:`~typing.ParamSpec`. (Use square brackets to
+  represent a parameter list.)
+
+- gh-issue-100112: :meth:`asyncio.Task.get_coro` now always returns a
+  coroutine when wrapping an awaitable object. Patch by Kumar Aditya.
+
+- gh-issue-102578: Speed up setting or deleting mutable attributes on
+  non-dataclass subclasses of frozen dataclasses. Due to the implementation
+  of ``__setattr__`` and ``__delattr__`` for frozen dataclasses, this
+  previously had a time complexity of ``O(n)``. It now has a time complexity
+  of ``O(1)``.
+
+- gh-issue-102519: Add :func:`os.listdrives`, :func:`os.listvolumes` and
+  :func:`os.listmounts` functions on Windows for enumerating drives, volumes
+  and mount points
+
+- gh-issue-74468: Attribute name of the extracted :mod:`tarfile` file object
+  now holds filename of itself rather than of the archive it is contained
+  in. Patch by Oleg Iarygin.
+
+- gh-issue-102378: Private helper method
+  ``inspect._signature_strip_non_python_syntax`` will no longer strip ``/``
+  from the input string.
+
+- gh-issue-79940: Add :func:`inspect.getasyncgenstate` and
+  :func:`inspect.getasyncgenlocals`. Patch by Thomas Krennwallner.
+
+- gh-issue-102103: Add ``module`` argument to
+  :func:`dataclasses.make_dataclass` and make classes produced by it
+  pickleable.
+
+- gh-issue-102069: Fix ``__weakref__`` descriptor generation for custom
+  dataclasses.
+
+- gh-issue-102038: Skip a ``stat`` in :mod:`site` if we have already found a
+  ``pyvenv.cfg``
+
+- gh-issue-98886: Fix issues when defining dataclasses that have fields with
+  specific underscore names that aren't clearly reserved by
+  :mod:`dataclasses`.
+
+- gh-issue-101673: Fix a :mod:`pdb` bug where ``ll`` clears the changes to
+  local variables.
+
+- gh-issue-101313: Added -h and --help arguments to the webbrowser CLI
+
+- gh-issue-100372: :meth:`ssl.SSLContext.load_verify_locations` no longer
+  incorrectly accepts some cases of trailing data when parsing DER.
+
+- gh-issue-89727: Fix pathlib.Path.walk RecursionError on deep directory
+  trees by rewriting it using iteration instead of recursion.
+
+- gh-issue-100131: Added an optional ``delete`` keyword argument to
+  :class:`tempfile.TemporaryDirectory`.
+
+- gh-issue-48330: Added ``--durations`` command line option, showing the N
+  slowest test cases. :class:`unittest.TextTestRunner` and
+  :class:`unittest.TextTestResult` constructors accept a new *durations*
+  keyword argument. Subclasses should take this into account or accept
+  ``**kwargs``. Added :meth:`unittest.TestResult.addDuration` method and
+  :attr:`unittest.TestResult.collectedDurations` attribute.
+
+  (Contributed by Giampaolo Rodola)
+
+- gh-issue-98169: Fix :func:`dataclasses.astuple` crash when
+  :class:`collections.defaultdict` is present in the attributes.
+
+- gh-issue-96931: Fix incorrect results from
+  :meth:`ssl.SSLSocket.shared_ciphers`
+
+- gh-issue-95495: When built against OpenSSL 3.0, the :mod:`ssl` module had
+  a bug where it reported unauthenticated EOFs (i.e. without close_notify)
+  as a clean TLS-level EOF. It now raises :exc:`~ssl.SSLEOFError`, matching
+  the behavior in previous versions of OpenSSL. The
+  :attr:`~ssl.SSLContext.options` attribute on :class:`~ssl.SSLContext` also
+  no longer includes :data:`~ssl.OP_IGNORE_UNEXPECTED_EOF` by default. This
+  option may be set to specify the previous OpenSSL 3.0 behavior.
+
+- gh-issue-94684: Now :func:`uuid.uuid3` and :func:`uuid.uuid5` functions
+  support :class:`bytes` objects as their *name* argument.
+
+- gh-issue-94440: Fix a :mod:`concurrent.futures.process` bug where
+  ``ProcessPoolExecutor`` shutdown could hang after a future has been
+  quickly submitted and canceled.
+
+- gh-issue-72346: Added deprecation warning to *isdst* parameter of
+  :func:`email.utils.localtime`.
+
+- bpo-36305: Fix handling of Windows filenames that resemble drives, such as
+  ``./a:b``, in :mod:`pathlib`.
+
+Documentation
+-------------
+
+- gh-issue-103112: Add docstring to :meth:`http.client.HTTPResponse.read` to
+  fix ``pydoc`` output.
+
+Tests
+-----
+
+- gh-issue-102980: Improve test coverage on :mod:`pdb`.
+
+- gh-issue-102537: Adjust the error handling strategy in
+  ``test_zoneinfo.TzPathTest.python_tzpath_context``. Patch by Paul Ganssle.
+
+- gh-issue-101377: Improved test_locale_calendar_formatweekday of calendar.
+
+Build
+-----
+
+- gh-issue-102973: Add a dev container (along with accompanying Dockerfile)
+  for development purposes.
+
+- gh-issue-102711: Fix ``-Wstrict-prototypes`` compiler warnings.
+
+Windows
+-------
+
+- gh-issue-102690: Update :mod:`webbrowser` to fall back to Microsoft Edge
+  instead of Internet Explorer.
+
+- gh-issue-99726: Improves correctness of stat results for Windows, and uses
+  faster API when available
+
+Tools/Demos
+-----------
+
+- gh-issue-102809: ``Misc/gdbinit`` was removed.
+
+C API
+-----
+
+- gh-issue-102013: Add a new (unstable) C-API function for iterating over
+  GC'able objects using a callback: ``PyUnstable_VisitObjects``.
+
+
 What's New in Python 3.12.0 alpha 6?
 ====================================
 
@@ -79,7 +372,8 @@ Core and Builtins
 - gh-issue-101857: Fix xattr support detection on Linux systems by widening
   the check to linux, not just glibc. This fixes support for musl.
 
-- gh-issue-84783: Make the slice object hashable.
+- gh-issue-84783: Make the slice object hashable. Patch by Will Bradshaw and
+  Furkan Onder.
 
 - gh-issue-87849: Change the ``SEND`` instruction to leave the receiver on
   the stack. This allows the specialized form of ``SEND`` to skip the chain
@@ -1592,7 +1886,7 @@ Library
 - gh-issue-83004: Clean up refleak on failed module initialisation in
   :mod:`_zoneinfo`
 
-- gh-issue-83004: Clean up refleaks on failed module initialisation in in
+- gh-issue-83004: Clean up refleaks on failed module initialisation in
   :mod:`_pickle`
 
 - gh-issue-83004: Clean up refleak on failed module initialisation in
@@ -1746,7 +2040,7 @@ Build
 - gh-issue-98707: Don't use vendored ``libmpdec`` headers if
   :option:`--with-system-libmpdec` is passed to :program:`configure`. Don't
   use vendored ``libexpat`` headers if :option:`--with-system-expat` is
-  passed to :program:`!configure`.
+  passed to :program:`configure`.
 
 Windows
 -------
@@ -3475,7 +3769,7 @@ Documentation
 
 - gh-issue-88831: Augmented documentation of asyncio.create_task().
   Clarified the need to keep strong references to tasks and added a code
-  snippet detailing how to to this.
+  snippet detailing how to do this.
 
 - gh-issue-86438: Clarify that :option:`-W` and :envvar:`PYTHONWARNINGS` are
   matched literally and case-insensitively, rather than as regular
@@ -3653,7 +3947,7 @@ Build
   :mod:`resource` module, :func:`~os.getresuid`, :func:`~os.getresgid`, and
   their setters. The APIs are stubs and not functional.
 
-- gh-issue-95973: Add a new ``--with-dsymutil`` configure option to to link
+- gh-issue-95973: Add a new ``--with-dsymutil`` configure option to link
   debug information in macOS. Patch by Pablo Galindo.
 
 - gh-issue-90536: Use the BOLT post-link optimizer to improve performance,
@@ -5826,7 +6120,7 @@ Build
   features are not required. Patch by Victor Stinner.
 
 - bpo-46656: Building Python now requires support for floating point
-  Not-a-Number (NaN): remove the ``Py_NO_NAN`` macro. Patch by by Victor
+  Not-a-Number (NaN): remove the ``Py_NO_NAN`` macro. Patch by Victor
   Stinner.
 
 - bpo-46640: Building Python now requires a C99 ``<math.h>`` header file
@@ -12519,8 +12813,8 @@ C API
 - bpo-40422: Add `_Py_closerange` function to provide performant closing of
   a range of file descriptors.
 
-- bpo-41986: :c:data:`Py_FileSystemDefaultEncodeErrors` and
-  :c:data:`Py_UTF8Mode` are available again in limited API.
+- bpo-41986: :c:data:`!Py_FileSystemDefaultEncodeErrors` and
+  :c:data:`!Py_UTF8Mode` are available again in limited API.
 
 - bpo-41756: Add `PyIter_Send` function to allow sending value into
   generator/coroutine/iterator without raising StopIteration exception to
