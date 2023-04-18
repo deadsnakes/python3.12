@@ -8,7 +8,7 @@ Subject: multiarch
  2 files changed, 7 insertions(+)
 
 diff --git a/Lib/sysconfig.py b/Lib/sysconfig.py
-index 30a7ab9..e0af477 100644
+index bb6906a..8d0f5fc 100644
 --- a/Lib/sysconfig.py
 +++ b/Lib/sysconfig.py
 @@ -713,6 +713,12 @@ def _init_config_vars():
@@ -25,10 +25,10 @@ index 30a7ab9..e0af477 100644
      srcdir = _CONFIG_VARS.get('srcdir', _PROJECT_BASE)
      if os.name == 'posix':
 diff --git a/Makefile.pre.in b/Makefile.pre.in
-index 2778178..15bdb63 100644
+index 2c259f3..9948b1e 100644
 --- a/Makefile.pre.in
 +++ b/Makefile.pre.in
-@@ -1317,6 +1317,7 @@ Modules/signalmodule.o: $(srcdir)/Modules/signalmodule.c $(srcdir)/Modules/posix
+@@ -1318,6 +1318,7 @@ Modules/signalmodule.o: $(srcdir)/Modules/signalmodule.c $(srcdir)/Modules/posix
  
  Python/dynload_shlib.o: $(srcdir)/Python/dynload_shlib.c Makefile
  	$(CC) -c $(PY_CORE_CFLAGS) \
