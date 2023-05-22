@@ -1330,10 +1330,8 @@ _get_peer_alt_names (_sslmodulestate *state, X509 *certificate) {
                         p[0], p[1], p[2], p[3]
                     );
                 } else if (name->d.ip->length == 16) {
-                    /* PyUnicode_FromFormat() does not support %X */
                     unsigned char *p = name->d.ip->data;
-                    len = sprintf(
-                        buf,
+                    v = PyUnicode_FromFormat(
                         "%X:%X:%X:%X:%X:%X:%X:%X",
                         p[0] << 8 | p[1],
                         p[2] << 8 | p[3],
@@ -1344,7 +1342,6 @@ _get_peer_alt_names (_sslmodulestate *state, X509 *certificate) {
                         p[12] << 8 | p[13],
                         p[14] << 8 | p[15]
                     );
-                    v = PyUnicode_FromStringAndSize(buf, len);
                 } else {
                     v = PyUnicode_FromString("<invalid>");
                 }
@@ -4336,8 +4333,6 @@ _ssl__SSLContext_set_ecdh_curve(PySSLContext *self, PyObject *name)
 {
     PyObject *name_bytes;
     int nid;
-    EC_KEY *key;
-
     if (!PyUnicode_FSConverter(name, &name_bytes))
         return NULL;
     assert(PyBytes_Check(name_bytes));
@@ -4348,13 +4343,20 @@ _ssl__SSLContext_set_ecdh_curve(PySSLContext *self, PyObject *name)
                      "unknown elliptic curve name %R", name);
         return NULL;
     }
-    key = EC_KEY_new_by_curve_name(nid);
+#if OPENSSL_VERSION_MAJOR < 3
+    EC_KEY *key = EC_KEY_new_by_curve_name(nid);
     if (key == NULL) {
         _setSSLError(get_state_ctx(self), NULL, 0, __FILE__, __LINE__);
         return NULL;
     }
     SSL_CTX_set_tmp_ecdh(self->ctx, key);
     EC_KEY_free(key);
+#else
+    if (!SSL_CTX_set1_groups(self->ctx, &nid, 1)) {
+        _setSSLError(get_state_ctx(self), NULL, 0, __FILE__, __LINE__);
+        return NULL;
+    }
+#endif
     Py_RETURN_NONE;
 }
 
@@ -6148,6 +6150,18 @@ sslmodule_init_strings(PyObject *module)
     return 0;
 }
 
+static int
+sslmodule_init_lock(PyObject *module)
+{
+    _sslmodulestate *state = get_ssl_state(module);
+    state->keylog_lock = PyThread_allocate_lock();
+    if (state->keylog_lock == NULL) {
+        PyErr_NoMemory();
+        return -1;
+    }
+    return 0;
+}
+
 static PyModuleDef_Slot sslmodule_slots[] = {
     {Py_mod_exec, sslmodule_init_types},
     {Py_mod_exec, sslmodule_init_exceptions},
@@ -6156,6 +6170,8 @@ static PyModuleDef_Slot sslmodule_slots[] = {
     {Py_mod_exec, sslmodule_init_constants},
     {Py_mod_exec, sslmodule_init_versioninfo},
     {Py_mod_exec, sslmodule_init_strings},
+    {Py_mod_exec, sslmodule_init_lock},
+    {Py_mod_multiple_interpreters, Py_MOD_PER_INTERPRETER_GIL_SUPPORTED},
     {0, NULL}
 };
 
@@ -6214,6 +6230,8 @@ static void
 sslmodule_free(void *m)
 {
     sslmodule_clear((PyObject *)m);
+    _sslmodulestate *state = get_ssl_state(m);
+    PyThread_free_lock(state->keylog_lock);
 }
 
 static struct PyModuleDef _sslmodule_def = {
