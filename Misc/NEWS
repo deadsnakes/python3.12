@@ -2,6 +2,235 @@
 Python News
 +++++++++++
 
+What's New in Python 3.12.0 beta 2?
+===================================
+
+*Release date: 2023-06-06*
+
+Security
+--------
+
+- gh-issue-103142: The version of OpenSSL used in our binary builds has been
+  upgraded to 1.1.1u to address several CVEs.
+
+- gh-issue-99108: Refresh our new HACL* built-in :mod:`hashlib` code from
+  upstream. Built-in SHA2 should be faster and an issue with SHA3 on 32-bit
+  platforms is fixed.
+
+Core and Builtins
+-----------------
+
+- gh-issue-105259: Don't include newline character for trailing ``NEWLINE``
+  tokens emitted in the :mod:`tokenize` module. Patch by Pablo Galindo
+
+- gh-issue-105324: Fix the main function of the :mod:`tokenize` module when
+  reading from ``sys.stdin``. Patch by Pablo Galindo
+
+- gh-issue-98963: Restore the ability for a subclass of :class:`property` to
+  define ``__slots__`` or otherwise be dict-less by ignoring failures to set
+  a docstring on such a class.  This behavior had regressed in 3.12beta1.
+  An :exc:`AttributeError` where there had not previously been one was
+  disruptive to existing code.
+
+- gh-issue-105194: Do not escape with backslashes f-string format
+  specifiers. Patch by Pablo Galindo
+
+- gh-issue-105162: Fixed bug in generator.close()/throw() where an inner
+  iterator would be ignored when the outer iterator was instrumented.
+
+- gh-issue-105164: Ensure annotations are set up correctly if the only
+  annotation in a block is within a :keyword:`match` block. Patch by Jelle
+  Zijlstra.
+
+- gh-issue-104799: Attributes of :mod:`ast` nodes that are lists now default
+  to the empty list if omitted. This means that some code that previously
+  raised :exc:`TypeError` when the AST node was used will now proceed with
+  the empty list instead. Patch by Jelle Zijlstra.
+
+- gh-issue-105035: Fix :func:`super` calls on types with custom
+  :attr:`tp_getattro` implementation (e.g. meta-types.)
+
+- gh-issue-105017: Show CRLF lines in the tokenize string attribute in both
+  NL and NEWLINE tokens. Patch by Marta Gómez.
+
+- gh-issue-105013: Fix handling of multiline parenthesized lambdas in
+  :func:`inspect.getsource`. Patch by Pablo Galindo
+
+- gh-issue-105017: Do not include an additional final ``NL`` token when
+  parsing files having CRLF lines. Patch by Marta Gómez.
+
+- gh-issue-104976: Ensure that trailing ``DEDENT``
+  :class:`tokenize.TokenInfo` objects emitted by the :mod:`tokenize` module
+  are reported as in Python 3.11. Patch by Pablo Galindo
+
+- gh-issue-104972: Ensure that the ``line`` attribute in
+  :class:`tokenize.TokenInfo` objects in the :mod:`tokenize` module are
+  always correct. Patch by Pablo Galindo
+
+- gh-issue-104955: Fix signature for the new
+  :meth:`~object.__release_buffer__` slot. Patch by Jelle Zijlstra.
+
+- gh-issue-104690: Starting new threads and process creation through
+  :func:`os.fork` during interpreter shutdown (such as from :mod:`atexit`
+  handlers) is no longer supported.  It can lead to race condition between
+  the main Python runtime thread freeing thread states while internal
+  :mod:`threading` routines are trying to allocate and use the state of just
+  created threads. Or forked children trying to use the mid-shutdown runtime
+  and thread state in the child process.
+
+- gh-issue-104879: Fix crash when accessing the ``__module__`` attribute of
+  type aliases defined outside a module. Patch by Jelle Zijlstra.
+
+- gh-issue-104825: Tokens emitted by the :mod:`tokenize` module do not
+  include an implicit ``\n`` character in the ``line`` attribute anymore.
+  Patch by Pablo Galindo
+
+Library
+-------
+
+- gh-issue-105280: Fix bug where ``isinstance([], collections.abc.Mapping)``
+  could evaluate to ``True`` if garbage collection happened at the wrong
+  time. The bug was caused by changes to the implementation of
+  :class:`typing.Protocol` in Python 3.12.
+
+- gh-issue-105239: Fix longstanding bug where ``issubclass(object,
+  typing.Protocol)`` would evaluate to ``True`` in some edge cases. Patch by
+  Alex Waygood.
+
+- gh-issue-105080: Fixed inconsistent signature on derived classes for
+  :func:`inspect.signature`
+
+- gh-issue-105144: Fix a recent regression in the :mod:`typing` module. The
+  regression meant that doing ``class Foo(X, typing.Protocol)``, where ``X``
+  was a class that had :class:`abc.ABCMeta` as its metaclass, would then
+  cause subsequent ``isinstance(1, X)`` calls to erroneously raise
+  :exc:`TypeError`. Patch by Alex Waygood.
+
+- gh-issue-105113: Improve performance of :meth:`pathlib.PurePath.match` by
+  compiling an :class:`re.Pattern` object for the entire pattern.
+
+- gh-issue-101588: Deprecate undocumented copy/deepcopy/pickle support for
+  itertools.
+
+- gh-issue-103631: Fix
+  ``pathlib.PurePosixPath(pathlib.PureWindowsPath(...))`` not converting
+  path separators to restore 3.11 compatible behavior.
+
+- gh-issue-104947: Make comparisons between :class:`pathlib.PureWindowsPath`
+  objects consistent across Windows and Posix to match 3.11 behavior.
+
+- gh-issue-104935: Fix bugs with the interaction between
+  :func:`typing.runtime_checkable` and :class:`typing.Generic` that were
+  introduced by the :pep:`695` implementation. Patch by Jelle Zijlstra.
+
+- gh-issue-104874: Document the ``__name__`` and ``__supertype__``
+  attributes of :class:`typing.NewType`. Patch by Jelle Zijlstra.
+
+- gh-issue-104799: Adjust the location of the (see :pep:`695`)
+  ``type_params`` field on :class:`ast.ClassDef`,
+  :class:`ast.AsyncFunctionDef`, and :class:`ast.FunctionDef` to better
+  preserve backward compatibility. Patch by Jelle Zijlstra
+
+- gh-issue-104797: Allow :class:`typing.Protocol` classes to inherit from
+  :class:`collections.abc.Buffer`. Patch by Jelle Zijlstra.
+
+- gh-issue-104372: On Linux where :mod:`subprocess` can use the ``vfork()``
+  syscall for faster spawning, prevent the parent process from blocking
+  other threads by dropping the GIL while it waits for the vfork'ed child
+  process ``exec()`` outcome. This prevents spawning a binary from a slow
+  filesystem from blocking the rest of the application.
+
+- gh-issue-99108: We now release the GIL around built-in :mod:`hashlib`
+  computations of reasonable size for the SHA families and MD5 hash
+  functions, matching what our OpenSSL backed hash computations already
+  does.
+
+- gh-issue-104399: Prepare the ``_tkinter`` module for building with Tcl 9.0
+  and future libtommath by replacing usage of deprecated functions
+  :c:func:`mp_to_unsigned_bin_n` and :c:func:`mp_unsigned_bin_size` when
+  necessary.
+
+- gh-issue-102024: Reduce calls of ``_idle_semaphore.release()`` in
+  :func:`concurrent.futures.thread._worker`.
+
+Documentation
+-------------
+
+- gh-issue-89455: Add missing documentation for the ``max_group_depth`` and
+  ``max_group_width`` parameters and the ``exceptions`` attribute of the
+  :class:`traceback.TracebackException` class.
+
+- gh-issue-89412: Add missing documentation for the ``end_lineno`` and
+  ``end_offset`` attributes of the :class:`traceback.TracebackException`
+  class.
+
+- gh-issue-104943: Remove mentions of old Python versions in
+  :class:`typing.NamedTuple`.
+
+Build
+-----
+
+- gh-issue-90005: Fix a regression in :file:`configure` where we could end
+  up unintentionally linking with ``libbsd``.
+
+- gh-issue-89886: Autoconf 2.71 and aclocal 1.16.4 is now required to
+  regenerate :file:`!configure`.
+
+Windows
+-------
+
+- gh-issue-105146: Updated the links at the end of the installer to point to
+  Discourse rather than the mailing lists.
+
+- gh-issue-103646: When installed from the Microsoft Store, ``pip`` no
+  longer defaults to per-user installs. However, as the install directory is
+  unwritable, it should automatically decide to do a per-user install
+  anyway. This should resolve issues when ``pip`` is passed an option that
+  conflicts with ``--user``.
+
+- gh-issue-88745: Improve performance of :func:`shutil.copy2` by using the
+  operating system's ``CopyFile2`` function. This may result in subtle
+  changes to metadata copied along with some files, bringing them in line
+  with normal OS behavior.
+
+- gh-issue-104820: Fixes :func:`~os.stat` and related functions on file
+  systems that do not support file ID requests. This includes FAT32 and
+  exFAT.
+
+- gh-issue-104803: Add :func:`os.path.isdevdrive` to detect whether a path
+  is on a Windows Dev Drive. Returns ``False`` on platforms that do not
+  support Dev Drive, and is absent on non-Windows platforms.
+
+macOS
+-----
+
+- gh-issue-103142: Update macOS installer to use OpenSSL 1.1.1u.
+
+IDLE
+----
+
+- gh-issue-104719: Remove IDLE's modification of tokenize.tabsize and test
+  other uses of tokenize data and methods.
+
+C API
+-----
+
+- gh-issue-105115: ``PyTypeObject.tp_bases`` (and ``tp_mro``) for builtin
+  static types are now shared by all interpreters, whereas in 3.12-beta1
+  they were stored on ``PyInterpreterState``.  Also note that now the tuples
+  are immortal objects.
+
+- gh-issue-105071: Add ``PyUnstable_Exc_PrepReraiseStar`` to the unstable C
+  api to expose the implementation of :keyword:`except* <except_star>`.
+
+- gh-issue-104668: Don't call :c:var:`PyOS_InputHook` or
+  :c:var:`PyOS_ReadlineFunctionPointer` in subinterpreters, since it's
+  generally difficult to avoid using global state in their registered
+  callbacks. This also avoids situations where extensions may find
+  themselves running in a subinterpreter they don't support (or haven't yet
+  been loaded in).
+
+
 What's New in Python 3.12.0 beta 1?
 ===================================
 
@@ -848,10 +1077,6 @@ macOS
 
 - gh-issue-60436: update curses textbox to additionally handle backspace
   using the ``curses.ascii.DEL`` key press.
-
-- gh-issue-103207: Add instructions to the macOS installer welcome display
-  on how to workaround the macOS 13 Ventura “The installer encountered an
-  error” failure.
 
 - gh-issue-102997: Update macOS installer to SQLite 3.41.2.
 
@@ -8891,7 +9116,7 @@ C API
   * :c:func:`PyMarshal_WriteObjectToString`
   * the ``Py_MARSHAL_VERSION`` macro
 
-  These are not part of the :ref:`limited API <stable-abi-list>`.
+  These are not part of the :ref:`limited API <limited-api-list>`.
 
   Patch by Victor Stinner.
 
@@ -10779,7 +11004,7 @@ C API
 
 - bpo-40939: Removed documentation for the removed ``PyParser_*`` C API.
 
-- bpo-43795: The list in :ref:`stable-abi-list` now shows the public name
+- bpo-43795: The list in :ref:`limited-api-list` now shows the public name
   :c:struct:`PyFrameObject` rather than ``_frame``. The non-existing entry
   ``_node`` no longer appears in the list.
 
