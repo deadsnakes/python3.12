@@ -2759,6 +2759,80 @@ class ProtocolTests(BaseTestCase):
         with self.assertRaisesRegex(TypeError, only_classes_allowed):
             issubclass(1, BadPG)
 
+    def test_implicit_issubclass_between_two_protocols(self):
+        @runtime_checkable
+        class CallableMembersProto(Protocol):
+            def meth(self): ...
+
+        # All the below protocols should be considered "subclasses"
+        # of CallableMembersProto at runtime,
+        # even though none of them explicitly subclass CallableMembersProto
+
+        class IdenticalProto(Protocol):
+            def meth(self): ...
+
+        class SupersetProto(Protocol):
+            def meth(self): ...
+            def meth2(self): ...
+
+        class NonCallableMembersProto(Protocol):
+            meth: Callable[[], None]
+
+        class NonCallableMembersSupersetProto(Protocol):
+            meth: Callable[[], None]
+            meth2: Callable[[str, int], bool]
+
+        class MixedMembersProto1(Protocol):
+            meth: Callable[[], None]
+            def meth2(self): ...
+
+        class MixedMembersProto2(Protocol):
+            def meth(self): ...
+            meth2: Callable[[str, int], bool]
+
+        for proto in (
+            IdenticalProto, SupersetProto, NonCallableMembersProto,
+            NonCallableMembersSupersetProto, MixedMembersProto1, MixedMembersProto2
+        ):
+            with self.subTest(proto=proto.__name__):
+                self.assertIsSubclass(proto, CallableMembersProto)
+
+        # These two shouldn't be considered subclasses of CallableMembersProto, however,
+        # since they don't have the `meth` protocol member
+
+        class EmptyProtocol(Protocol): ...
+        class UnrelatedProtocol(Protocol):
+            def wut(self): ...
+
+        self.assertNotIsSubclass(EmptyProtocol, CallableMembersProto)
+        self.assertNotIsSubclass(UnrelatedProtocol, CallableMembersProto)
+
+        # These aren't protocols at all (despite having annotations),
+        # so they should only be considered subclasses of CallableMembersProto
+        # if they *actually have an attribute* matching the `meth` member
+        # (just having an annotation is insufficient)
+
+        class AnnotatedButNotAProtocol:
+            meth: Callable[[], None]
+
+        class NotAProtocolButAnImplicitSubclass:
+            def meth(self): pass
+
+        class NotAProtocolButAnImplicitSubclass2:
+            meth: Callable[[], None]
+            def meth(self): pass
+
+        class NotAProtocolButAnImplicitSubclass3:
+            meth: Callable[[], None]
+            meth2: Callable[[int, str], bool]
+            def meth(self): pass
+            def meth(self, x, y): return True
+
+        self.assertNotIsSubclass(AnnotatedButNotAProtocol, CallableMembersProto)
+        self.assertIsSubclass(NotAProtocolButAnImplicitSubclass, CallableMembersProto)
+        self.assertIsSubclass(NotAProtocolButAnImplicitSubclass2, CallableMembersProto)
+        self.assertIsSubclass(NotAProtocolButAnImplicitSubclass3, CallableMembersProto)
+
     def test_isinstance_checks_not_at_whim_of_gc(self):
         self.addCleanup(gc.enable)
         gc.disable()
@@ -3799,6 +3873,71 @@ class ProtocolTests(BaseTestCase):
         # if a Protocol subclass of Sized had been created
         # before any isinstance() checks against Sized
         self.assertNotIsInstance(1, typing.Sized)
+
+    def test_empty_protocol_decorated_with_final(self):
+        @final
+        @runtime_checkable
+        class EmptyProtocol(Protocol): ...
+
+        self.assertIsSubclass(object, EmptyProtocol)
+        self.assertIsInstance(object(), EmptyProtocol)
+
+    def test_protocol_decorated_with_final_callable_members(self):
+        @final
+        @runtime_checkable
+        class ProtocolWithMethod(Protocol):
+            def startswith(self, string: str) -> bool: ...
+
+        self.assertIsSubclass(str, ProtocolWithMethod)
+        self.assertNotIsSubclass(int, ProtocolWithMethod)
+        self.assertIsInstance('foo', ProtocolWithMethod)
+        self.assertNotIsInstance(42, ProtocolWithMethod)
+
+    def test_protocol_decorated_with_final_noncallable_members(self):
+        @final
+        @runtime_checkable
+        class ProtocolWithNonCallableMember(Protocol):
+            x: int
+
+        class Foo:
+            x = 42
+
+        only_callable_members_please = (
+            r"Protocols with non-method members don't support issubclass()"
+        )
+
+        with self.assertRaisesRegex(TypeError, only_callable_members_please):
+            issubclass(Foo, ProtocolWithNonCallableMember)
+
+        with self.assertRaisesRegex(TypeError, only_callable_members_please):
+            issubclass(int, ProtocolWithNonCallableMember)
+
+        self.assertIsInstance(Foo(), ProtocolWithNonCallableMember)
+        self.assertNotIsInstance(42, ProtocolWithNonCallableMember)
+
+    def test_protocol_decorated_with_final_mixed_members(self):
+        @final
+        @runtime_checkable
+        class ProtocolWithMixedMembers(Protocol):
+            x: int
+            def method(self) -> None: ...
+
+        class Foo:
+            x = 42
+            def method(self) -> None: ...
+
+        only_callable_members_please = (
+            r"Protocols with non-method members don't support issubclass()"
+        )
+
+        with self.assertRaisesRegex(TypeError, only_callable_members_please):
+            issubclass(Foo, ProtocolWithMixedMembers)
+
+        with self.assertRaisesRegex(TypeError, only_callable_members_please):
+            issubclass(int, ProtocolWithMixedMembers)
+
+        self.assertIsInstance(Foo(), ProtocolWithMixedMembers)
+        self.assertNotIsInstance(42, ProtocolWithMixedMembers)
 
 
 class GenericTests(BaseTestCase):
@@ -6828,10 +6967,6 @@ class TestModules(TestCase):
 
 
 class NewTypeTests(BaseTestCase):
-    def cleanup(self):
-        for f in typing._cleanups:
-            f()
-
     @classmethod
     def setUpClass(cls):
         global UserId
@@ -6843,9 +6978,6 @@ class NewTypeTests(BaseTestCase):
         global UserId
         del UserId
         del cls.UserName
-
-    def tearDown(self):
-        self.cleanup()
 
     def test_basic(self):
         self.assertIsInstance(UserId(5), int)
