@@ -2,6 +2,174 @@
 Python News
 +++++++++++
 
+What's New in Python 3.12.0 beta 3?
+===================================
+
+*Release date: 2023-06-19*
+
+Core and Builtins
+-----------------
+
+- gh-issue-105840: Fix possible crashes when specializing function calls
+  with too many ``__defaults__``.
+
+- gh-issue-105831: Fix an f-string bug, where using a debug expression (the
+  ``=`` sign) that appears in the last line of a file results to the debug
+  buffer that holds the expression text being one character too small.
+
+- gh-issue-105800: Correctly issue :exc:`SyntaxWarning` in f-strings if
+  invalid sequences are used. Patch by Pablo Galindo
+
+- gh-issue-105587: The runtime can't guarantee that immortal objects will
+  not be mutated by Extensions. Thus, this modifies
+  _PyStaticObject_CheckRefcnt to warn instead of asserting.
+
+- gh-issue-105564: Don't include artificil newlines in the ``line``
+  attribute of tokens in the APIs of the :mod:`tokenize` module. Patch by
+  Pablo Galindo
+
+- gh-issue-105549: Tokenize separately ``NUMBER`` and ``NAME`` tokens that
+  are not ambiguous. Patch by Pablo Galindo.
+
+- gh-issue-105588: Fix an issue that could result in crashes when compiling
+  malformed :mod:`ast` nodes.
+
+- gh-issue-105375: Fix bugs in the :mod:`builtins` module where exceptions
+  could end up being overwritten.
+
+- gh-issue-105375: Fix bug in the compiler where an exception could end up
+  being overwritten.
+
+- gh-issue-105375: Improve error handling in
+  :c:func:`PyUnicode_BuildEncodingMap` where an exception could end up being
+  overwritten.
+
+- gh-issue-105435: Fix spurious newline character if file ends on a comment
+  without a newline. Patch by Pablo Galindo
+
+- gh-issue-105390: Correctly raise :exc:`tokenize.TokenError` exceptions
+  instead of :exc:`SyntaxError` for tokenize errors such as incomplete
+  input. Patch by Pablo Galindo
+
+- gh-issue-104812: The "pending call" machinery now works for all
+  interpreters, not just the main interpreter, and runs in all threads, not
+  just the main thread. Some calls are still only done in the main thread,
+  ergo in the main interpreter. This change does not affect signal handling
+  nor the existing public C-API (``Py_AddPendingCall()``), which both still
+  only target the main thread. The new functionality is meant strictly for
+  internal use for now, since consequences of its use are not well
+  understood yet outside some very restricted cases.  This change brings the
+  capability in line with the intention when the state was made
+  per-interpreter several years ago.
+
+Library
+-------
+
+- gh-issue-105808: Fix a regression introduced in GH-101251 for 3.12,
+  causing :meth:`gzip.GzipFile.flush` to not flush the compressor (nor pass
+  along the ``zip_mode`` argument).
+
+- gh-issue-104799: Enable :func:`ast.unparse` to unparse function and class
+  definitions created without the new ``type_params`` field from :pep:`695`.
+  Patch by Jelle Zijlstra.
+
+- gh-issue-105745: Fix ``webbrowser.Konqueror.open`` method.
+
+- gh-issue-105375: Fix a bug in :c:func:`!_Unpickler_SetInputStream` where
+  an exception could end up being overwritten in case of failure.
+
+- gh-issue-105375: Fix bugs in :mod:`sys` where exceptions could end up
+  being overwritten because of deferred error handling.
+
+- gh-issue-105605: Harden :mod:`pyexpat` error handling during module
+  initialisation to prevent exceptions from possibly being overwritten, and
+  objects from being dereferenced twice.
+
+- gh-issue-105375: Fix bug in :mod:`decimal` where an exception could end up
+  being overwritten.
+
+- gh-issue-105375: Fix bugs in :mod:`!_datetime` where exceptions could be
+  overwritten in case of module initialisation failure.
+
+- gh-issue-105375: Fix bugs in :mod:`!_ssl` initialisation which could lead
+  to leaked references and overwritten exceptions.
+
+- gh-issue-105375: Fix a bug in :class:`array.array` where an exception
+  could end up being overwritten.
+
+- gh-issue-105375: Fix bugs in :mod:`_ctypes` where exceptions could end up
+  being overwritten.
+
+- gh-issue-105375: Fix a bug in the :mod:`posix` module where an exception
+  could be overwritten.
+
+- gh-issue-105375: Fix bugs in :mod:`!_elementtree` where exceptions could
+  be overwritten.
+
+- gh-issue-105375: Fix bugs in :mod:`zoneinfo` where exceptions could be
+  overwritten.
+
+- gh-issue-105375: Fix bugs in :mod:`pickle` where exceptions could be
+  overwritten.
+
+- gh-issue-105375: Fix bugs in :mod:`pickle` where exceptions could be
+  overwritten.
+
+- gh-issue-105375: Fix a bug in :mod:`sqlite3` where an exception could be
+  overwritten in the :meth:`collation <sqlite3.Connection.create_collation>`
+  callback.
+
+- gh-issue-105332: Revert pickling method from by-name back to by-value.
+
+- gh-issue-104310: In the beta 1 release we added a utility function for
+  extension module authors, to use when testing their module for support in
+  multiple interpreters or under a per-interpreter GIL.  The name of that
+  function has changed from ``allowing_all_extensions`` to
+  ``_incompatible_extension_module_restrictions``.  The default for the
+  "disable_check" argument has change from ``True`` to ``False``, to better
+  match the new function name.
+
+- gh-issue-104996: Improve performance of :class:`pathlib.PurePath`
+  initialisation by deferring joining of paths when multiple arguments are
+  given.
+
+- gh-issue-102541: Hide traceback in :func:`help` prompt, when import
+  failed.
+
+Tests
+-----
+
+- gh-issue-105084: When the Python build is configured
+  ``--with-wheel-pkg-dir``, tests requiring the ``setuptools`` and ``wheel``
+  wheels will search for the wheels in ``WHEEL_PKG_DIR``.
+
+Windows
+-------
+
+- gh-issue-105436: Ensure that an empty environment block is terminated by
+  two null characters, as is required by Windows.
+
+C API
+-----
+
+- gh-issue-105375: Fix a bug in :c:func:`PyErr_WarnExplicit` where an
+  exception could end up being overwritten if the API failed internally.
+
+- gh-issue-105603: We've renamed the new (in 3.12)
+  ``PyInterpreterConfig.own_gil`` to ``PyInterpreterConfig.gil`` and changed
+  the meaning of the value from "bool" to an integer with supported values
+  of ``PyInterpreterConfig_DEFAULT_GIL``,
+  ``PyInterpreterConfig_SHARED_GIL``, and ``PyInterpreterConfig_OWN_GIL``.
+  The default is "shared".
+
+- gh-issue-105387: In the limited C API version 3.12, :c:func:`Py_INCREF`
+  and :c:func:`Py_DECREF` functions are now implemented as opaque function
+  calls to hide implementation details. Patch by Victor Stinner.
+
+- gh-issue-103968: :c:func:`PyType_FromMetaclass` now allows metaclasses
+  with ``tp_new`` set to ``NULL``.
+
+
 What's New in Python 3.12.0 beta 2?
 ===================================
 
