@@ -7,7 +7,7 @@ Subject: relax autotools requirement
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/configure.ac b/configure.ac
-index 91308e5..a65e761 100644
+index 770f0f1..58a19c1 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -15,7 +15,7 @@ dnl
