@@ -317,6 +317,10 @@ class _BasePurePathTest(object):
         self.assertTrue(P('A.py').match('a.PY', case_sensitive=False))
         self.assertFalse(P('c:/a/B.Py').match('C:/A/*.pY', case_sensitive=True))
         self.assertTrue(P('/a/b/c.py').match('/A/*/*.Py', case_sensitive=False))
+        # Matching against empty path
+        self.assertFalse(P().match('*'))
+        self.assertTrue(P().match('**'))
+        self.assertFalse(P().match('**/*'))
 
     def test_ordering_common(self):
         # Ordering is tuple-alike.
@@ -622,8 +626,14 @@ class _BasePurePathTest(object):
         self.assertRaises(ValueError, p.relative_to, P('a/b/c'))
         self.assertRaises(ValueError, p.relative_to, P('a/c'))
         self.assertRaises(ValueError, p.relative_to, P('/a'))
+        self.assertRaises(ValueError, p.relative_to, P("../a"))
+        self.assertRaises(ValueError, p.relative_to, P("a/.."))
+        self.assertRaises(ValueError, p.relative_to, P("/a/.."))
         self.assertRaises(ValueError, p.relative_to, P('/'), walk_up=True)
         self.assertRaises(ValueError, p.relative_to, P('/a'), walk_up=True)
+        self.assertRaises(ValueError, p.relative_to, P("../a"), walk_up=True)
+        self.assertRaises(ValueError, p.relative_to, P("a/.."), walk_up=True)
+        self.assertRaises(ValueError, p.relative_to, P("/a/.."), walk_up=True)
         p = P('/a/b')
         self.assertEqual(p.relative_to(P('/')), P('a/b'))
         self.assertEqual(p.relative_to('/'), P('a/b'))
@@ -652,8 +662,14 @@ class _BasePurePathTest(object):
         self.assertRaises(ValueError, p.relative_to, P())
         self.assertRaises(ValueError, p.relative_to, '')
         self.assertRaises(ValueError, p.relative_to, P('a'))
+        self.assertRaises(ValueError, p.relative_to, P("../a"))
+        self.assertRaises(ValueError, p.relative_to, P("a/.."))
+        self.assertRaises(ValueError, p.relative_to, P("/a/.."))
         self.assertRaises(ValueError, p.relative_to, P(''), walk_up=True)
         self.assertRaises(ValueError, p.relative_to, P('a'), walk_up=True)
+        self.assertRaises(ValueError, p.relative_to, P("../a"), walk_up=True)
+        self.assertRaises(ValueError, p.relative_to, P("a/.."), walk_up=True)
+        self.assertRaises(ValueError, p.relative_to, P("/a/.."), walk_up=True)
 
     def test_is_relative_to_common(self):
         P = self.cls
