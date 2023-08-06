@@ -23,6 +23,7 @@ import types
 import unittest
 from unittest import mock
 import _testinternalcapi
+import _imp
 
 from test.support import os_helper
 from test.support import (
@@ -96,7 +97,6 @@ def require_frozen(module, *, skip=True):
 def require_pure_python(module, *, skip=False):
     _require_loader(module, SourceFileLoader, skip)
 
-
 def remove_files(name):
     for f in (name + ".py",
               name + ".pyc",
@@ -127,17 +127,33 @@ def _ready_to_import(name=None, source=""):
                 del sys.modules[name]
 
 
-def requires_subinterpreters(meth):
-    """Decorator to skip a test if subinterpreters are not supported."""
-    return unittest.skipIf(_interpreters is None,
-                           'subinterpreters required')(meth)
+if _testsinglephase is not None:
+    def restore__testsinglephase(*, _orig=_testsinglephase):
+        # We started with the module imported and want to restore
+        # it to its nominal state.
+        sys.modules.pop('_testsinglephase', None)
+        _orig._clear_globals()
+        _testinternalcapi.clear_extension('_testsinglephase', _orig.__file__)
+        import _testsinglephase
 
 
 def requires_singlephase_init(meth):
     """Decorator to skip if single-phase init modules are not supported."""
+    if not isinstance(meth, type):
+        def meth(self, _meth=meth):
+            try:
+                return _meth(self)
+            finally:
+                restore__testsinglephase()
     meth = cpython_only(meth)
     return unittest.skipIf(_testsinglephase is None,
                            'test requires _testsinglephase module')(meth)
+
+
+def requires_subinterpreters(meth):
+    """Decorator to skip a test if subinterpreters are not supported."""
+    return unittest.skipIf(_interpreters is None,
+                           'subinterpreters required')(meth)
 
 
 class ModuleSnapshot(types.SimpleNamespace):
@@ -762,6 +778,13 @@ class ImportTests(unittest.TestCase):
                                     stderr=subprocess.STDOUT,
                                     env=env,
                                     cwd=os.path.dirname(pyexe))
+
+    def test_issue105979(self):
+        # this used to crash
+        with self.assertRaises(ImportError) as cm:
+            _imp.get_frozen_object("x", b"6\'\xd5Cu\x12")
+        self.assertIn("Frozen object named 'x' is invalid",
+                      str(cm.exception))
 
 
 @skip_if_dont_write_bytecode
@@ -1935,6 +1958,20 @@ class SubinterpImportTests(unittest.TestCase):
         with self.subTest(f'{module}: strict, fresh'):
             self.check_compatible_fresh(module, strict=True, isolated=True)
 
+    @requires_subinterpreters
+    @requires_singlephase_init
+    def test_disallowed_reimport(self):
+        # See https://github.com/python/cpython/issues/104621.
+        script = textwrap.dedent('''
+            import _testsinglephase
+            print(_testsinglephase)
+            ''')
+        interpid = _interpreters.create()
+        with self.assertRaises(_interpreters.RunFailedError):
+            _interpreters.run_string(interpid, script)
+        with self.assertRaises(_interpreters.RunFailedError):
+            _interpreters.run_string(interpid, script)
+
 
 class TestSinglePhaseSnapshot(ModuleSnapshot):
 
@@ -1993,6 +2030,10 @@ class SinglephaseInitTests(unittest.TestCase):
 
         # Start fresh.
         cls.clean_up()
+
+    @classmethod
+    def tearDownClass(cls):
+        restore__testsinglephase()
 
     def tearDown(self):
         # Clean up the module.
@@ -2070,7 +2111,7 @@ class SinglephaseInitTests(unittest.TestCase):
             _interpreters.run_string(interpid, textwrap.dedent(f'''
                 name = {self.NAME!r}
                 if name in sys.modules:
-                    sys.modules[name]._clear_globals()
+                    sys.modules.pop(name)._clear_globals()
                 _testinternalcapi.clear_extension(name, {self.FILE!r})
                 '''))
             _interpreters.destroy(interpid)

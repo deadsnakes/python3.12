@@ -509,7 +509,7 @@ class PythonLanguage(Language):
 
 def permute_left_option_groups(l):
     """
-    Given [1, 2, 3], should yield:
+    Given [(1,), (2,), (3,)], should yield:
        ()
        (3,)
        (2, 3)
@@ -524,7 +524,7 @@ def permute_left_option_groups(l):
 
 def permute_right_option_groups(l):
     """
-    Given [1, 2, 3], should yield:
+    Given [(1,), (2,), (3,)], should yield:
       ()
       (1,)
       (1, 2)
@@ -1906,7 +1906,7 @@ class BufferSeries:
 
     def clear(self):
         for ta in self._array:
-            ta._text.clear()
+            ta.text.clear()
 
     def dump(self):
         texts = [ta.output() for ta in self._array]
@@ -1966,22 +1966,20 @@ extensions: LangDict = { name: CLanguage for name in "c cc cpp cxx h hh hpp hxx"
 extensions['py'] = PythonLanguage
 
 
-def file_changed(filename: str, new_contents: str) -> bool:
-    """Return true if file contents changed (meaning we must update it)"""
+def write_file(filename: str, new_contents: str) -> None:
     try:
-        with open(filename, encoding="utf-8") as fp:
+        with open(filename, 'r', encoding="utf-8") as fp:
             old_contents = fp.read()
-        return old_contents != new_contents
+
+        if old_contents == new_contents:
+            # no change: avoid modifying the file modification time
+            return
     except FileNotFoundError:
-        return True
-
-
-def write_file(filename: str, new_contents: str):
+        pass
     # Atomic write using a temporary file and os.replace()
     filename_new = f"{filename}.new"
     with open(filename_new, "w", encoding="utf-8") as fp:
         fp.write(new_contents)
-
     try:
         os.replace(filename_new, filename)
     except:
@@ -2159,8 +2157,6 @@ impl_definition block
                          traceback.format_exc().rstrip())
             printer.print_block(block)
 
-        clinic_out = []
-
         # these are destinations not buffers
         for name, destination in self.destinations.items():
             if destination.type == 'suppress':
@@ -2168,7 +2164,6 @@ impl_definition block
             output = destination.dump()
 
             if output:
-
                 block = Block("", dsl_name="clinic", output=output)
 
                 if destination.type == 'buffer':
@@ -2200,11 +2195,10 @@ impl_definition block
                     block.input = 'preserve\n'
                     printer_2 = BlockPrinter(self.language)
                     printer_2.print_block(block, core_includes=True)
-                    pair = destination.filename, printer_2.f.getvalue()
-                    clinic_out.append(pair)
+                    write_file(destination.filename, printer_2.f.getvalue())
                     continue
 
-        return printer.f.getvalue(), clinic_out
+        return printer.f.getvalue()
 
 
     def _module_and_class(self, fields):
@@ -2266,14 +2260,9 @@ def parse_file(
 
     assert isinstance(language, CLanguage)
     clinic = Clinic(language, verify=verify, filename=filename)
-    src_out, clinic_out = clinic.parse(raw)
+    cooked = clinic.parse(raw)
 
-    changes = [(fn, data) for fn, data in clinic_out if file_changed(fn, data)]
-    if changes:
-        # Always (re)write the source file.
-        write_file(output, src_out)
-        for fn, data in clinic_out:
-            write_file(fn, data)
+    write_file(output, cooked)
 
 
 def compute_checksum(
@@ -4289,6 +4278,7 @@ class IndentStack:
 
 
 StateKeeper = Callable[[str | None], None]
+ConverterArgs = dict[str, Any]
 
 class DSLParser:
     def __init__(self, clinic: Clinic) -> None:
@@ -4376,13 +4366,13 @@ class DSLParser:
             command: str,
             *args
     ) -> None:
-        if command == 'new':
-            self.clinic.add_destination(name, *args)
-            return
-
-        if command == 'clear':
-            self.clinic.get_destination(name).clear()
-        fail("unknown destination command", repr(command))
+        match command:
+            case "new":
+                self.clinic.add_destination(name, *args)
+            case "clear":
+                self.clinic.get_destination(name).clear()
+            case _:
+                fail("unknown destination command", repr(command))
 
 
     def directive_output(
@@ -5016,10 +5006,10 @@ class DSLParser:
         key = f"{parameter_name}_as_{c_name}" if c_name else parameter_name
         self.function.parameters[key] = p
 
-    KwargDict = dict[str | None, Any]
-
     @staticmethod
-    def parse_converter(annotation: ast.expr | None) -> tuple[str, bool, KwargDict]:
+    def parse_converter(
+            annotation: ast.expr | None
+    ) -> tuple[str, bool, ConverterArgs]:
         match annotation:
             case ast.Constant(value=str() as value):
                 return value, True, {}
@@ -5027,10 +5017,11 @@ class DSLParser:
                 return name, False, {}
             case ast.Call(func=ast.Name(name)):
                 symbols = globals()
-                kwargs = {
-                    node.arg: eval_ast_expr(node.value, symbols)
-                    for node in annotation.keywords
-                }
+                kwargs: ConverterArgs = {}
+                for node in annotation.keywords:
+                    if not isinstance(node.arg, str):
+                        fail("Cannot use a kwarg splat in a function-call annotation")
+                    kwargs[node.arg] = eval_ast_expr(node.value, symbols)
                 return name, False, kwargs
             case _:
                 fail(
@@ -5440,15 +5431,21 @@ with writing argument parsing code for builtins and providing introspection
 signatures ("docstrings") for CPython builtins.
 
 For more information see https://docs.python.org/3/howto/clinic.html""")
-    cmdline.add_argument("-f", "--force", action='store_true')
-    cmdline.add_argument("-o", "--output", type=str)
-    cmdline.add_argument("-v", "--verbose", action='store_true')
-    cmdline.add_argument("--converters", action='store_true')
+    cmdline.add_argument("-f", "--force", action='store_true',
+                         help="force output regeneration")
+    cmdline.add_argument("-o", "--output", type=str,
+                         help="redirect file output to OUTPUT")
+    cmdline.add_argument("-v", "--verbose", action='store_true',
+                         help="enable verbose mode")
+    cmdline.add_argument("--converters", action='store_true',
+                         help=("print a list of all supported converters "
+                               "and return converters"))
     cmdline.add_argument("--make", action='store_true',
-                         help="Walk --srcdir to run over all relevant files.")
+                         help="walk --srcdir to run over all relevant files")
     cmdline.add_argument("--srcdir", type=str, default=os.curdir,
-                         help="The directory tree to walk in --make mode.")
-    cmdline.add_argument("filename", type=str, nargs="*")
+                         help="the directory tree to walk in --make mode")
+    cmdline.add_argument("filename", metavar="FILE", type=str, nargs="*",
+                         help="the list of files to process")
     ns = cmdline.parse_args(argv)
 
     if ns.converters:

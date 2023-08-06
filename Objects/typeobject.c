@@ -238,6 +238,13 @@ _PyType_GetDict(PyTypeObject *self)
     return lookup_tp_dict(self);
 }
 
+PyObject *
+PyType_GetDict(PyTypeObject *self)
+{
+    PyObject *dict = lookup_tp_dict(self);
+    return _Py_XNewRef(dict);
+}
+
 static inline void
 set_tp_dict(PyTypeObject *self, PyObject *dict)
 {
@@ -1442,24 +1449,17 @@ type_get_annotations(PyTypeObject *type, void *context)
     }
 
     PyObject *annotations;
-    /* there's no _PyDict_GetItemId without WithError, so let's LBYL. */
     PyObject *dict = lookup_tp_dict(type);
-    if (PyDict_Contains(dict, &_Py_ID(__annotations__))) {
-        annotations = PyDict_GetItemWithError(dict, &_Py_ID(__annotations__));
-        /*
-        ** PyDict_GetItemWithError could still fail,
-        ** for instance with a well-timed Ctrl-C or a MemoryError.
-        ** so let's be totally safe.
-        */
-        if (annotations) {
-            if (Py_TYPE(annotations)->tp_descr_get) {
-                annotations = Py_TYPE(annotations)->tp_descr_get(
-                        annotations, NULL, (PyObject *)type);
-            } else {
-                Py_INCREF(annotations);
-            }
+    annotations = PyDict_GetItemWithError(dict, &_Py_ID(__annotations__));
+    if (annotations) {
+        if (Py_TYPE(annotations)->tp_descr_get) {
+            annotations = Py_TYPE(annotations)->tp_descr_get(
+                    annotations, NULL, (PyObject *)type);
+        } else {
+            Py_INCREF(annotations);
         }
-    } else {
+    }
+    else if (!PyErr_Occurred()) {
         annotations = PyDict_New();
         if (annotations) {
             int result = PyDict_SetItem(
@@ -1491,11 +1491,10 @@ type_set_annotations(PyTypeObject *type, PyObject *value, void *context)
         result = PyDict_SetItem(dict, &_Py_ID(__annotations__), value);
     } else {
         /* delete */
-        if (!PyDict_Contains(dict, &_Py_ID(__annotations__))) {
-            PyErr_Format(PyExc_AttributeError, "__annotations__");
-            return -1;
-        }
         result = PyDict_DelItem(dict, &_Py_ID(__annotations__));
+        if (result < 0 && PyErr_ExceptionMatches(PyExc_KeyError)) {
+            PyErr_SetString(PyExc_AttributeError, "__annotations__");
+        }
     }
 
     if (result == 0) {
@@ -1507,10 +1506,13 @@ type_set_annotations(PyTypeObject *type, PyObject *value, void *context)
 static PyObject *
 type_get_type_params(PyTypeObject *type, void *context)
 {
-    PyObject *params = PyDict_GetItem(lookup_tp_dict(type), &_Py_ID(__type_params__));
+    PyObject *params = PyDict_GetItemWithError(lookup_tp_dict(type), &_Py_ID(__type_params__));
 
     if (params) {
         return Py_NewRef(params);
+    }
+    if (PyErr_Occurred()) {
+        return NULL;
     }
 
     return PyTuple_New(0);

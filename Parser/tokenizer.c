@@ -117,7 +117,6 @@ tok_new(void)
     tok->implicit_newline = 0;
     tok->tok_mode_stack[0] = (tokenizer_mode){.kind =TOK_REGULAR_MODE, .f_string_quote='\0', .f_string_quote_size = 0, .f_string_debug=0};
     tok->tok_mode_stack_index = 0;
-    tok->tok_report_warnings = 1;
 #ifdef Py_DEBUG
     tok->debug = _Py_GetConfig()->parser_debug;
 #endif
@@ -1546,10 +1545,6 @@ static int
 warn_invalid_escape_sequence(struct tok_state *tok, int first_invalid_escape_char)
 {
 
-    if (!tok->tok_report_warnings) {
-        return 0;
-    }
-
     PyObject *msg = PyUnicode_FromFormat(
         "invalid escape sequence '\\%c'",
         (char) first_invalid_escape_char
@@ -1559,12 +1554,12 @@ warn_invalid_escape_sequence(struct tok_state *tok, int first_invalid_escape_cha
         return -1;
     }
 
-    if (PyErr_WarnExplicitObject(PyExc_DeprecationWarning, msg, tok->filename,
+    if (PyErr_WarnExplicitObject(PyExc_SyntaxWarning, msg, tok->filename,
                                  tok->lineno, NULL, NULL) < 0) {
         Py_DECREF(msg);
 
-        if (PyErr_ExceptionMatches(PyExc_DeprecationWarning)) {
-            /* Replace the DeprecationWarning exception with a SyntaxError
+        if (PyErr_ExceptionMatches(PyExc_SyntaxWarning)) {
+            /* Replace the SyntaxWarning exception with a SyntaxError
                to get a more accurate error report */
             PyErr_Clear();
             return syntaxerror(tok, "invalid escape sequence '\\%c'", (char) first_invalid_escape_char);
