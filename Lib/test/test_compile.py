@@ -478,6 +478,26 @@ class TestSpecifics(unittest.TestCase):
         ast.body = [_ast.BoolOp()]
         self.assertRaises(TypeError, compile, ast, '<ast>', 'exec')
 
+    def test_compile_invalid_typealias(self):
+        # gh-109341
+        m = ast.Module(
+            body=[
+                ast.TypeAlias(
+                    name=ast.Subscript(
+                        value=ast.Name(id="foo", ctx=ast.Load()),
+                        slice=ast.Constant(value="x"),
+                        ctx=ast.Store(),
+                    ),
+                    type_params=[],
+                    value=ast.Name(id="Callable", ctx=ast.Load()),
+                )
+            ],
+            type_ignores=[],
+        )
+
+        with self.assertRaisesRegex(TypeError, "TypeAlias with non-Name name"):
+            compile(ast.fix_missing_locations(m), "<file>", "exec")
+
     def test_dict_evaluation_order(self):
         i = 0
 
@@ -1741,6 +1761,13 @@ class TestSourcePositions(unittest.TestCase):
                     list(code.co_consts[0].co_positions()),
                     list(code.co_consts[1].co_positions()),
                 )
+
+    def test_load_super_attr(self):
+        source = "class C:\n  def __init__(self):\n    super().__init__()"
+        code = compile(source, "<test>", "exec").co_consts[0].co_consts[1]
+        self.assertOpcodeSourcePositionIs(
+            code, "LOAD_GLOBAL", line=3, end_line=3, column=4, end_column=9
+        )
 
 
 class TestExpressionStackSize(unittest.TestCase):
