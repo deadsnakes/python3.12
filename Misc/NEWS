@@ -2,6 +2,52 @@
 Python News
 +++++++++++
 
+What's New in Python 3.12.0 final?
+==================================
+
+*Release date: 2023-10-02*
+
+Core and Builtins
+-----------------
+
+- gh-issue-109823: Fix bug where compiler does not adjust labels when
+  removing an empty basic block which is a jump target.
+
+- gh-issue-109719: Fix missing jump target labels when compiler reorders
+  cold/warm blocks.
+
+- gh-issue-109627: Fix bug where the compiler does not assign a new jump
+  target label to a duplicated small exit block.
+
+Library
+-------
+
+- gh-issue-110045: Update the :mod:`symtable` module to support the new
+  scopes introduced by :pep:`695`.
+
+Documentation
+-------------
+
+- gh-issue-109209: The minimum Sphinx version required for the documentation
+  is now 4.2.
+
+Windows
+-------
+
+- gh-issue-109991: Update Windows build to use OpenSSL 3.0.11.
+
+macOS
+-----
+
+- gh-issue-109991: Update macOS installer to use OpenSSL 3.0.11.
+
+Tools/Demos
+-----------
+
+- gh-issue-109991: Update GitHub CI workflows to use OpenSSL 3.0.11 and
+  multissltests to use 1.1.1w, 3.0.11, and 3.1.3.
+
+
 What's New in Python 3.12.0 release candidate 3?
 ================================================
 
@@ -256,7 +302,7 @@ Library
   Patch by Erlend E. Aasland.
 
 - gh-issue-107963: Fix :func:`multiprocessing.set_forkserver_preload` to
-  check the given list of modules names. Patch by Dong-hee Na.
+  check the given list of modules names. Patch by Donghee Na.
 
 - gh-issue-106242: Fixes :func:`os.path.normpath` to handle embedded null
   characters without truncating the path.
@@ -1231,7 +1277,7 @@ Core and Builtins
   objects with a missing attribute.
 
 - gh-issue-104028: Reduce object creation while calling callback function
-  from gc. Patch by Dong-hee Na.
+  from gc. Patch by Donghee Na.
 
 - gh-issue-104018: Disallow the "z" format specifier in %-format of bytes
   objects.
@@ -1336,7 +1382,7 @@ Core and Builtins
   when pickled and unpickled.
 
 - gh-issue-103242: Migrate :meth:`~ssl.SSLContext.set_ecdh_curve` method not
-  to use deprecated OpenSSL APIs. Patch by Dong-hee Na.
+  to use deprecated OpenSSL APIs. Patch by Donghee Na.
 
 - gh-issue-103323: We've replaced our use of ``_PyRuntime.tstate_current``
   with a thread-local variable.  This is a fairly low-level implementation
@@ -1915,7 +1961,7 @@ Build
   properly.
 
 - gh-issue-104106: Add gcc fallback of mkfifoat/mknodat for macOS. Patch by
-  Dong-hee Na.
+  Donghee Na.
 
 - gh-issue-103532: The ``TKINTER_PROTECT_LOADTK`` macro is no longer defined
   or used in the ``_tkinter`` module.  It was previously only defined when
@@ -2038,7 +2084,7 @@ C API
   to a PyTypeObject: ``PyUnstable_Type_AssignVersionTag()``.
 
 - gh-issue-101408: :c:func:`PyObject_GC_Resize` should calculate preheader
-  size if needed. Patch by Dong-hee Na.
+  size if needed. Patch by Donghee Na.
 
 - gh-issue-98836: Add support of more formatting options (left aligning,
   octals, uppercase hexadecimals, :c:type:`intmax_t`, :c:type:`ptrdiff_t`,
@@ -2437,7 +2483,7 @@ Core and Builtins
   the iter object.
 
 - gh-issue-101430: Update :mod:`tracemalloc` to handle presize of object
-  properly. Patch by Dong-hee Na.
+  properly. Patch by Donghee Na.
 
 - gh-issue-101696: Invalidate type version tag in ``_PyStaticType_Dealloc``
   for static types, avoiding bug where a false cache hit could crash the
@@ -2701,10 +2747,10 @@ Core and Builtins
 
 - gh-issue-101400: Fix wrong lineno in exception message on
   :keyword:`continue` or :keyword:`break` which are not in a loop. Patch by
-  Dong-hee Na.
+  Donghee Na.
 
 - gh-issue-101372: Fix :func:`~unicodedata.is_normalized` to properly handle
-  the UCD 3.2.0 cases. Patch by Dong-hee Na.
+  the UCD 3.2.0 cases. Patch by Donghee Na.
 
 - gh-issue-101266: Fix :func:`sys.getsizeof` reporting for :class:`int`
   subclasses.
@@ -2877,7 +2923,7 @@ Build
 -----
 
 - gh-issue-101282: Update BOLT configration not to use depreacted usage of
-  ``--split functions``. Patch by Dong-hee Na.
+  ``--split functions``. Patch by Donghee Na.
 
 - gh-issue-101522: Allow overriding Windows dependencies versions and paths
   using MSBuild properties.
@@ -2949,10 +2995,10 @@ Core and Builtins
 - gh-issue-99005: Remove :opcode:`UNARY_POSITIVE`, :opcode:`ASYNC_GEN_WRAP`
   and :opcode:`LIST_TO_TUPLE`, replacing them with intrinsics.
 
-- gh-issue-99005: Add new :opcode:`CALL_INSTRINSIC_1` instruction. Remove
+- gh-issue-99005: Add new :opcode:`CALL_INTRINSIC_1` instruction. Remove
   :opcode:`IMPORT_STAR`, :opcode:`PRINT_EXPR` and
   :opcode:`STOPITERATION_ERROR`, replacing them with the
-  :opcode:`CALL_INSTRINSIC_1` instruction.
+  :opcode:`CALL_INTRINSIC_1` instruction.
 
 - gh-issue-100288: Remove the LOAD_ATTR_METHOD_WITH_DICT specialized
   instruction. Stats show it is not useful.
@@ -3179,7 +3225,7 @@ Library
   Waygood.
 
 - gh-issue-98778: Update :exc:`~urllib.error.HTTPError` to be initialized
-  properly, even if the ``fp`` is ``None``. Patch by Dong-hee Na.
+  properly, even if the ``fp`` is ``None``. Patch by Donghee Na.
 
 - gh-issue-99925: Unify error messages in JSON serialization between
   ``json.dumps(float('nan'), allow_nan=False)`` and
@@ -3386,7 +3432,7 @@ Security
 
   This is done by changing the :mod:`http.server`
   :class:`BaseHTTPRequestHandler` ``.log_message`` method to replace control
-  characters with a ``\xHH`` hex escape before printing.
+  characters with a :samp:`\\x{HH}` hex escape before printing.
 
 - gh-issue-87604: Avoid publishing list of active per-interpreter audit
   hooks via the :mod:`gc` module
@@ -3437,7 +3483,7 @@ Core and Builtins
   haven't had :c:func:`PyType_Ready` called on them yet.
 
 - gh-issue-99127: Allow some features of :mod:`syslog` to the main
-  interpreter only. Patch by Dong-hee Na.
+  interpreter only. Patch by Donghee Na.
 
 - gh-issue-91053: Optimizing interpreters and JIT compilers may need to
   invalidate internal metadata when functions are modified. This change adds
@@ -3724,8 +3770,8 @@ Security
   longer involves a quadratic algorithm. This prevents a potential CPU
   denial of service if an out-of-spec excessive length hostname involving
   bidirectional characters were decoded. Some protocols such as
-  :mod:`urllib` http ``3xx`` redirects potentially allow for an attacker to
-  supply such a name.
+  :mod:`urllib` http :samp:`3{xx}` redirects potentially allow for an
+  attacker to supply such a name.
 
   Individual labels within an IDNA encoded DNS name will now raise an error
   early during IDNA decoding if they are longer than 1024 unicode characters
@@ -3769,7 +3815,7 @@ Core and Builtins
   "python<MAJOR>.<MINOR>").
 
 - gh-issue-96055: Update :mod:`faulthandler` to emit an error message with
-  the proper unexpected signal number. Patch by Dong-hee Na.
+  the proper unexpected signal number. Patch by Donghee Na.
 
 - gh-issue-99153: Fix location of :exc:`SyntaxError` for a :keyword:`try`
   block with both :keyword:`except` and :keyword:`except* <except_star>`.
@@ -4205,7 +4251,7 @@ Core and Builtins
 -----------------
 
 - gh-issue-98374: Suppress ImportError for invalid query for help() command.
-  Patch by Dong-hee Na.
+  Patch by Donghee Na.
 
 - gh-issue-98461: Fix source location in bytecode for list, set and dict
   comprehensions as well as generator expressions.
@@ -4230,7 +4276,7 @@ Core and Builtins
   parser does not have to calculate those doing pointer arithmetic.
 
 - gh-issue-96078: :func:`os.sched_yield` now release the GIL while calling
-  sched_yield(2). Patch by Dong-hee Na.
+  sched_yield(2). Patch by Donghee Na.
 
 - gh-issue-97955: Migrate :mod:`zoneinfo` to Argument Clinic.
 
@@ -4338,7 +4384,7 @@ Core and Builtins
 - gh-issue-96751: Remove dead code from ``CALL_FUNCTION_EX`` opcode.
 
 - gh-issue-90751: :class:`memoryview` now supports half-floats. Patch by
-  Dong-hee Na and Antoine Pitrou.
+  Donghee Na and Antoine Pitrou.
 
 - gh-issue-96678: Fix case of undefined behavior in ceval.c
 
@@ -4487,7 +4533,7 @@ Core and Builtins
   non-identical code objects could be "deduplicated" during compilation.
 
 - gh-issue-91146: Reduce allocation size of :class:`list` from
-  :meth:`str.split` and :meth:`str.rsplit`. Patch by Dong-hee Na and Inada
+  :meth:`str.split` and :meth:`str.rsplit`. Patch by Donghee Na and Inada
   Naoki.
 
 - gh-issue-87092: Create a 'jump target label' abstraction in the compiler
@@ -5523,7 +5569,7 @@ Library
 
 - gh-issue-92932: Now :func:`~dis.dis` and :func:`~dis.get_instructions`
   handle operand values for instructions prefixed by ``EXTENDED_ARG_QUICK``.
-  Patch by Sam Gross and Dong-hee Na.
+  Patch by Sam Gross and Donghee Na.
 
 - gh-issue-92675: Fix :func:`venv.ensure_directories` to accept
   :class:`pathlib.Path` arguments in addition to :class:`str` paths. Patch
@@ -5979,13 +6025,13 @@ Build
 
 - gh-issue-96761: Fix the build process of clang compiler for
   :program:`_bootstrap_python` if LTO optimization is applied. Patch by
-  Matthias Görgens and Dong-hee Na.
+  Matthias Görgens and Donghee Na.
 
 - gh-issue-96883: ``wasm32-emscripten`` builds for browsers now include
   :mod:`concurrent.futures` for :mod:`asyncio` and :mod:`unittest.mock`.
 
 - gh-issue-85936: CPython now uses the ThinLTO option as the default policy
-  if the Clang compiler accepts the flag. Patch by Dong-hee Na.
+  if the Clang compiler accepts the flag. Patch by Donghee Na.
 
 - gh-issue-96729: Ensure that Windows releases built with
   ``Tools\msi\buildrelease.bat`` are upgradable to and from official Python
@@ -6103,9 +6149,9 @@ Windows
   also use :mod:`multiprocessing` to spawn more children will recognize that
   they are in a virtual environment.
 
-- gh-issue-98414: Fix :file:`py.exe` launcher handling of ``-V:<company>/``
-  option when default preferences have been set in environment variables or
-  configuration files.
+- gh-issue-98414: Fix :file:`py.exe` launcher handling of
+  :samp:`-V:{<company>}/` option when default preferences have been set in
+  environment variables or configuration files.
 
 - gh-issue-97728: Fix possible crashes caused by the use of uninitialized
   variables when pass invalid arguments in :func:`os.system` on Windows and
@@ -6508,7 +6554,7 @@ Core and Builtins
   Victor Stinner.
 
 - gh-issue-91632: Fix a minor memory leak at exit: release the memory of the
-  :class:`generic_alias_iterator` type. Patch by Dong-hee Na.
+  :class:`generic_alias_iterator` type. Patch by Donghee Na.
 
 - gh-issue-81548: Octal escapes with value larger than ``0o377`` now produce
   a :exc:`DeprecationWarning`. In a future Python version they will be a
@@ -7238,7 +7284,7 @@ Core and Builtins
 
 - bpo-46775: Some Windows system error codes(>= 10000) are now mapped into
   the correct errno and may now raise a subclass of :exc:`OSError`. Patch by
-  Dong-hee Na.
+  Donghee Na.
 
 - bpo-47129: Improve error messages in f-string syntax errors concerning
   empty expressions.
@@ -7788,7 +7834,7 @@ C API
   :func:`sys.set_asyncgen_hooks` functions instead. Patch by Victor Stinner.
 
 - bpo-46987: Remove private functions ``_PySys_GetObjectId()`` and
-  ``_PySys_SetObjectId()``. Patch by Dong-hee Na.
+  ``_PySys_SetObjectId()``. Patch by Donghee Na.
 
 - bpo-46906: Add new functions to pack and unpack C double (serialize and
   deserialize): :c:func:`PyFloat_Pack2`, :c:func:`PyFloat_Pack4`,
@@ -7926,7 +7972,7 @@ Core and Builtins
 
 - bpo-46323: :mod:`ctypes` now allocates memory on the stack instead of on
   the heap to pass arguments while calling a Python callback function. Patch
-  by Dong-hee Na.
+  by Donghee Na.
 
 - bpo-45923: Add a quickened form of :opcode:`RESUME` that skips quickening
   checks.
@@ -7945,7 +7991,7 @@ Core and Builtins
   ``Modules/_hashopenssl.c``.
 
 - bpo-46323: Use :c:func:`PyObject_Vectorcall` while calling ctypes callback
-  function. Patch by Dong-hee Na.
+  function. Patch by Donghee Na.
 
 - bpo-46615: When iterating over sets internally in ``setobject.c``, acquire
   strong references to the resulting items from the set.  This prevents
@@ -7973,7 +8019,7 @@ Library
   :meth:`~mmap.find` and :meth:`~mmap.rfind`.
 
 - bpo-46736: :class:`~http.server.SimpleHTTPRequestHandler` now uses HTML5
-  grammar. Patch by Dong-hee Na.
+  grammar. Patch by Donghee Na.
 
 - bpo-44886: Inherit asyncio proactor datagram transport from
   :class:`asyncio.DatagramTransport`.
@@ -8296,7 +8342,7 @@ Core and Builtins
   by Kumar Aditya.
 
 - bpo-46481: Speed up calls to :meth:`weakref.ref.__call__` by using the
-  :pep:`590` ``vectorcall`` calling convention. Patch by Dong-hee Na.
+  :pep:`590` ``vectorcall`` calling convention. Patch by Donghee Na.
 
 - bpo-46417: Fix a race condition on setting a type ``__bases__`` attribute:
   the internal function ``add_subclass()`` now gets the
@@ -9287,7 +9333,7 @@ Library
   gvfs-open
 
 - bpo-45429: On Windows, :func:`time.sleep` now uses a waitable timer which
-  supports high-resolution timers. Patch by Dong-hee Na and Eryk Sun.
+  supports high-resolution timers. Patch by Donghee Na and Eryk Sun.
 
 - bpo-37295: Optimize :func:`math.comb` and :func:`math.perm`.
 
@@ -9594,7 +9640,7 @@ Core and Builtins
 
 - bpo-29410: Add SipHash13 for string hash algorithm and use it by default.
 
-- bpo-45385: Fix reference leak from descr_check. Patch by Dong-hee Na.
+- bpo-45385: Fix reference leak from descr_check. Patch by Donghee Na.
 
 - bpo-45367: Specialized the ``BINARY_MULTIPLY`` opcode to
   ``BINARY_MULTIPLY_INT`` and ``BINARY_MULTIPLY_FLOAT`` using the PEP 659
@@ -9648,7 +9694,7 @@ Core and Builtins
 - bpo-44511: Improve the generated bytecode for class and mapping patterns.
 
 - bpo-43706: Speed up calls to ``enumerate()`` by using the :pep:`590`
-  ``vectorcall`` calling convention. Patch by Dong-hee Na.
+  ``vectorcall`` calling convention. Patch by Donghee Na.
 
 Library
 -------
@@ -9696,7 +9742,7 @@ Library
   them. Patch by Inada Naoki.
 
 - bpo-45489: Update :class:`~typing.ForwardRef` to support ``|`` operator.
-  Patch by Dong-hee Na.
+  Patch by Donghee Na.
 
 - bpo-42222: Removed deprecated support for float arguments in
   *randrange()*.
@@ -9728,7 +9774,7 @@ Library
   explicit loop arguments. Patch by Joongi Kim.
 
 - bpo-20028: Empty escapechar/quotechar is not allowed when initializing
-  :class:`csv.Dialect`. Patch by Vajrasky Kok and Dong-hee Na.
+  :class:`csv.Dialect`. Patch by Vajrasky Kok and Donghee Na.
 
 - bpo-44904: Fix bug in the :mod:`doctest` module that caused it to fail if
   a docstring included an example with a ``classmethod`` ``property``. Patch
@@ -9756,7 +9802,7 @@ Library
   testing for year formatting options.
 
 - bpo-20028: Improve error message of :class:`csv.Dialect` when
-  initializing. Patch by Vajrasky Kok and Dong-hee Na.
+  initializing. Patch by Vajrasky Kok and Donghee Na.
 
 - bpo-45343: Update bundled pip to 21.2.4 and setuptools to 58.1.0
 
@@ -10188,7 +10234,7 @@ Core and Builtins
   ``2**32`` times.
 
 - bpo-45000: A :exc:`SyntaxError` is now raised when trying to delete
-  :const:`__debug__`. Patch by Dong-hee Na.
+  :const:`__debug__`. Patch by Donghee Na.
 
 - bpo-44963: Implement ``send()`` and ``throw()`` methods for
   ``anext_awaitable`` objects. Patch by Pablo Galindo.
@@ -10235,7 +10281,7 @@ Core and Builtins
 
 - bpo-44895: A debug variable :envvar:`PYTHONDUMPREFSFILE` is added for
   creating a dump file which is generated by :option:`--with-trace-refs`.
-  Patch by Dong-hee Na.
+  Patch by Donghee Na.
 
 - bpo-44900: Add five superinstructions for PEP 659 quickening:
 
@@ -10324,7 +10370,7 @@ Core and Builtins
   raises ``TypeError`` instead of returning ``NotImplemented``.
 
 - bpo-44661: Update ``property_descr_set`` to use vectorcall if possible.
-  Patch by Dong-hee Na.
+  Patch by Donghee Na.
 
 - bpo-44662: Add ``__module__`` to ``types.Union``. This also fixes
   ``types.Union`` issues with ``typing.Annotated``. Patch provided by Yurii
@@ -10346,7 +10392,7 @@ Core and Builtins
 
 - bpo-44611: On Windows, :func:`os.urandom`: uses BCryptGenRandom API
   instead of CryptGenRandom API which is deprecated from Microsoft Windows
-  API. Patch by Dong-hee Na.
+  API. Patch by Donghee Na.
 
 - bpo-44635: Convert ``None`` to ``type(None)`` in the union type
   constructor.
@@ -10700,7 +10746,7 @@ Library
   Patch by Hugo van Kemenade.
 
 - bpo-44987: Pure ASCII strings are now normalized in constant time by
-  :func:`unicodedata.normalize`. Patch by Dong-hee Na.
+  :func:`unicodedata.normalize`. Patch by Donghee Na.
 
 - bpo-35474: Calling :func:`mimetypes.guess_all_extensions` with
   ``strict=False`` no longer affects the result of the following call with
@@ -10828,7 +10874,7 @@ Library
 
 - bpo-42255: :class:`webbrowser.MacOSX` is deprecated and will be removed in
   Python 3.13. It is untested and undocumented and also not used by
-  webbrowser itself. Patch by Dong-hee Na.
+  webbrowser itself. Patch by Donghee Na.
 
 - bpo-44955: Method :meth:`~unittest.TestResult.stopTestRun` is now always
   called in pair with method :meth:`~unittest.TestResult.startTestRun` for
@@ -11008,7 +11054,7 @@ Library
   @contextlib.contextmanager generator
 
 - bpo-44558: Make the implementation consistency of
-  :func:`~operator.indexOf` between C and Python versions. Patch by Dong-hee
+  :func:`~operator.indexOf` between C and Python versions. Patch by Donghee
   Na.
 
 - bpo-41249: Fixes ``TypedDict`` to work with ``typing.get_type_hints()``
@@ -11106,7 +11152,7 @@ Library
   or colons.
 
 - bpo-44395: Fix :meth:`~email.message.MIMEPart.as_string` to pass unixfrom
-  properly. Patch by Dong-hee Na.
+  properly. Patch by Donghee Na.
 
 - bpo-34266: Handle exceptions from parsing the arg of :mod:`pdb`'s
   run/restart command.
@@ -11124,7 +11170,7 @@ Library
   :mod:`sysconfig`.
 
 - bpo-35800: :class:`smtpd.MailmanProxy` is now removed as it is unusable
-  without an external module, ``mailman``. Patch by Dong-hee Na.
+  without an external module, ``mailman``. Patch by Donghee Na.
 
 - bpo-44357: Added a function that returns cube root of the given number
   :func:`math.cbrt`
@@ -11163,7 +11209,7 @@ Library
 - bpo-44258: Support PEP 515 for Fraction's initialization from string.
 
 - bpo-44235: Remove deprecated functions in the :mod:`gettext`. Patch by
-  Dong-hee Na.
+  Donghee Na.
 
 - bpo-38693: Prefer f-strings to ``.format`` in importlib.resources.
 
@@ -11715,7 +11761,7 @@ Build
   easier to add to and modify the frozen modules.
 
 - bpo-44340: Add support for building with clang thin lto via
-  --with-lto=thin/full. Patch by Dong-hee Na and Brett Holman.
+  --with-lto=thin/full. Patch by Donghee Na and Brett Holman.
 
 - bpo-44535: Enable building using a Visual Studio 2022 install on Windows.
 
@@ -11830,7 +11876,7 @@ Tools/Demos
 
 - bpo-43425: Removed the 'test2to3' demo project that demonstrated using
   lib2to3 to support Python 2.x and Python 3.x from a single source in a
-  distutils package. Patch by Dong-hee Na
+  distutils package. Patch by Donghee Na
 
 - bpo-44074: Make patchcheck automatically detect the correct base branch
   name (previously it was hardcoded to 'master')
@@ -12170,7 +12216,7 @@ Library
   locale encoding.
 
 - bpo-43979: Removed an unnecessary list comprehension before looping from
-  :func:`urllib.parse.parse_qsl`.  Patch by Christoph Zwerschke and Dong-hee
+  :func:`urllib.parse.parse_qsl`.  Patch by Christoph Zwerschke and Donghee
   Na.
 
 - bpo-43993: Update bundled pip to 21.1.1.
@@ -12721,7 +12767,7 @@ Core and Builtins
   elements ('**') in f-strings. Patch by Pablo Galindo.
 
 - bpo-43575: Speed up calls to ``map()`` by using the :pep:`590`
-  ``vectorcall`` calling convention. Patch by Dong-hee Na.
+  ``vectorcall`` calling convention. Patch by Donghee Na.
 
 - bpo-42137: The import system now prefers using ``__spec__`` for
   ``ModuleType.__repr__`` over ``module_repr()``.
@@ -12765,7 +12811,7 @@ Core and Builtins
   the vast majority of processes that don't use sigaltstack.
 
 - bpo-43287: Speed up calls to ``filter()`` by using the :pep:`590`
-  ``vectorcall`` calling convention. Patch by Dong-hee Na.
+  ``vectorcall`` calling convention. Patch by Donghee Na.
 
 - bpo-37448: Add a radix tree based memory map to track in-use obmalloc
   arenas. Use to replace the old implementation of address_in_range(). The
@@ -13222,7 +13268,7 @@ Library
 
 - bpo-43106: Added :const:`~os.O_EVTONLY`, :const:`~os.O_FSYNC`,
   :const:`~os.O_SYMLINK` and :const:`~os.O_NOFOLLOW_ANY` for macOS. Patch by
-  Dong-hee Na.
+  Donghee Na.
 
 - bpo-42960: Adds :const:`resource.RLIMIT_KQUEUES` constant from FreeBSD to
   the :mod:`resource` module.
@@ -13632,8 +13678,8 @@ Core and Builtins
   unreachable bytecode blocks
 
 - bpo-42639: Make the :mod:`atexit` module state per-interpreter. It is now
-  safe have more than one :mod:`atexit` module instance. Patch by Dong-hee
-  Na and Victor Stinner.
+  safe have more than one :mod:`atexit` module instance. Patch by Donghee Na
+  and Victor Stinner.
 
 - bpo-32381: Fix encoding name when running a ``.pyc`` file on Windows:
   :c:func:`PyRun_SimpleFileExFlags()` now uses the correct encoding to
@@ -13871,7 +13917,7 @@ Tests
 -----
 
 - bpo-42794: Update test_nntplib to use official group name of news.aioe.org
-  for testing. Patch by Dong-hee Na.
+  for testing. Patch by Donghee Na.
 
 - bpo-31904: Skip some asyncio tests on VxWorks.
 
@@ -14117,7 +14163,7 @@ Library
   Python 3.4. It is somewhat obsolete, little used, and not tested. It was
   originally scheduled to be removed in Python 3.6, but such removals were
   delayed until after Python 2.7 EOL. Existing users should copy whatever
-  classes they use into their code. Patch by Dong-hee Na and and Terry J.
+  classes they use into their code. Patch by Donghee Na and and Terry J.
   Reedy.
 
 - bpo-26131: Deprecate zipimport.zipimporter.load_module() in favour of
@@ -14605,14 +14651,14 @@ Core and Builtins
 - bpo-41902: Micro optimization when compute
   :c:member:`~PySequenceMethods.sq_item` and
   :c:member:`~PyMappingMethods.mp_subscript` of :class:`range`. Patch by
-  Dong-hee Na.
+  Donghee Na.
 
 - bpo-41894: When loading a native module and a load failure occurs, prevent
   a possible UnicodeDecodeError when not running in a UTF-8 locale by
   decoding the load error message using the current locale's encoding.
 
 - bpo-41902: Micro optimization for range.index if step is 1. Patch by
-  Dong-hee Na.
+  Donghee Na.
 
 - bpo-41435: Add `sys._current_exceptions()` function to retrieve a
   dictionary mapping each thread's identifier to the topmost exception
@@ -14910,13 +14956,13 @@ Core and Builtins
   infinite recursion.
 
 - bpo-41922: Speed up calls to ``reversed()`` by using the :pep:`590`
-  ``vectorcall`` calling convention. Patch by Dong-hee Na.
+  ``vectorcall`` calling convention. Patch by Donghee Na.
 
 - bpo-41873: Calls to ``float()`` are now faster due to the ``vectorcall``
   calling convention. Patch by Dennis Sweeney.
 
 - bpo-41870: Speed up calls to ``bool()`` by using the :pep:`590`
-  ``vectorcall`` calling convention. Patch by Dong-hee Na.
+  ``vectorcall`` calling convention. Patch by Donghee Na.
 
 - bpo-1635741: Port the :mod:`_bisect` module to the multi-phase
   initialization API (:pep:`489`).
@@ -15112,7 +15158,7 @@ Core and Builtins
 - bpo-40957: Fix refleak in _Py_fopen_obj() when PySys_Audit() fails
 
 - bpo-40950: Add a state to the :mod:`nis` module (:pep:`3121`) and apply
-  the multiphase initialization. Patch by Dong-hee Na.
+  the multiphase initialization. Patch by Donghee Na.
 
 - bpo-40947: The Python :ref:`Path Configuration <init-path-config>` now
   takes :c:member:`PyConfig.platlibdir` in account.
@@ -15191,7 +15237,7 @@ Core and Builtins
   Galindo.
 
 - bpo-39573: :c:func:`Py_TYPE()` is changed to the inline static function.
-  Patch by Dong-hee Na.
+  Patch by Donghee Na.
 
 - bpo-40696: Fix a hang that can arise after :meth:`generator.throw` due to
   a cycle in the exception context chain.
@@ -15737,7 +15783,7 @@ Documentation
   do you remove multiple items from a list".
 
 - bpo-35293: Fix RemovedInSphinx40Warning when building the documentation.
-  Patch by Dong-hee Na.
+  Patch by Donghee Na.
 
 - bpo-37149: Change Shipman tkinter doc link from archive.org to TkDocs.
   (The doc has been removed from the NMT server.)  The new link responds
@@ -15824,7 +15870,7 @@ Build
 -----
 
 - bpo-38249: Update :c:macro:`Py_UNREACHABLE` to use __builtin_unreachable()
-  if only the compiler is able to use it. Patch by Dong-hee Na.
+  if only the compiler is able to use it. Patch by Donghee Na.
 
 - bpo-41617: Fix ``pycore_bitutils.h`` header file to support old clang
   versions: ``__builtin_bswap16()`` is not available in LLVM clang 3.0.
@@ -16212,10 +16258,10 @@ Library
   positional-only.
 
 - bpo-39305: Update :mod:`nntplib` to merge :class:`nntplib.NNTP` and
-  :class:`nntplib._NNTPBase`. Patch by Dong-hee Na.
+  :class:`nntplib._NNTPBase`. Patch by Donghee Na.
 
 - bpo-32494: Update :mod:`dbm.gnu` to use gdbm_count if possible when
-  calling :func:`len`. Patch by Dong-hee Na.
+  calling :func:`len`. Patch by Donghee Na.
 
 - bpo-40453: Add ``isolated=True`` keyword-only parameter to
   ``_xxsubinterpreters.create()``. An isolated subinterpreter cannot spawn
@@ -16245,7 +16291,7 @@ Library
   for subdirectories in package data, matching backport in
   importlib_resources 1.5.
 
-- bpo-40375: :meth:`imaplib.IMAP4.unselect` is added. Patch by Dong-hee Na.
+- bpo-40375: :meth:`imaplib.IMAP4.unselect` is added. Patch by Donghee Na.
 
 - bpo-40389: ``repr()`` now returns ``typing.Optional[T]`` when called for
   ``typing.Union`` of two types, one of which is ``NoneType``.
@@ -16899,7 +16945,7 @@ Core and Builtins
   (:pep:`489`).
 
 - bpo-37207: Speed up calls to ``frozenset()`` by using the :pep:`590`
-  ``vectorcall`` calling convention. Patch by Dong-hee Na.
+  ``vectorcall`` calling convention. Patch by Donghee Na.
 
 - bpo-39984: subinterpreters: Move
   ``_PyRuntimeState.ceval.tracing_possible`` to
@@ -16907,7 +16953,7 @@ Core and Builtins
   its own variable.
 
 - bpo-37207: Speed up calls to ``set()`` by using the :pep:`590`
-  ``vectorcall`` calling convention. Patch by Dong-hee Na.
+  ``vectorcall`` calling convention. Patch by Donghee Na.
 
 - bpo-1635741: Port _statistics module to multiphase initialization
   (:pep:`489`).
@@ -16924,7 +16970,7 @@ Core and Builtins
   Taskaya.
 
 - bpo-37207: Speed up calls to ``tuple()`` by using the :pep:`590`
-  ``vectorcall`` calling convention. Patch by Dong-hee Na.
+  ``vectorcall`` calling convention. Patch by Donghee Na.
 
 - bpo-38373: Changed list overallocation strategy. It no longer
   overallocates if the new size is closer to overallocated size than to the
@@ -17072,7 +17118,7 @@ Library
   a tuple (e.g. ``a[i, j]``).
 
 - bpo-39828: Fix :mod:`json.tool` to catch :exc:`BrokenPipeError`. Patch by
-  Dong-hee Na.
+  Donghee Na.
 
 - bpo-13487: Avoid a possible *"RuntimeError: dictionary changed size during
   iteration"* from :func:`inspect.getmodule` when it tried to loop through
@@ -17143,7 +17189,7 @@ Library
   ``qop`` parameter is not present.
 
 - bpo-39509: HTTP status codes ``103 EARLY_HINTS`` and ``425 TOO_EARLY`` are
-  added to :class:`http.HTTPStatus`. Patch by Dong-hee Na.
+  added to :class:`http.HTTPStatus`. Patch by Donghee Na.
 
 - bpo-39507: Adding HTTP status 418 "I'm a Teapot" to HTTPStatus in http
   library. Patch by Ross Rhodes.
@@ -17286,7 +17332,7 @@ C API
 -----
 
 - bpo-40024: Add :c:func:`PyModule_AddType` helper function: add a type to a
-  module. Patch by Dong-hee Na.
+  module. Patch by Donghee Na.
 
 - bpo-39946: Remove ``_PyRuntime.getframe`` hook and remove
   ``_PyThreadState_GetFrame`` macro which was an alias to
@@ -17296,7 +17342,7 @@ C API
 - bpo-39947: Add :c:func:`PyThreadState_GetFrame` function: get the current
   frame of a Python thread state.
 
-- bpo-37207: Add _PyArg_NoKwnames helper function. Patch by Dong-hee Na.
+- bpo-37207: Add _PyArg_NoKwnames helper function. Patch by Donghee Na.
 
 - bpo-39947: Add :c:func:`PyThreadState_GetInterpreter`: get the interpreter
   of a Python thread state.
@@ -17379,7 +17425,7 @@ Core and Builtins
   reference, and so does its first item. Patch by Yonatan Goldschmidt.
 
 - bpo-39573: Update clinic tool to use :c:func:`Py_IS_TYPE`. Patch by
-  Dong-hee Na.
+  Donghee Na.
 
 - bpo-39619: Enable use of :func:`os.chroot` on HP-UX systems.
 
@@ -17409,11 +17455,11 @@ Core and Builtins
   garbage collection of deleted, pickled objects.
 
 - bpo-39453: Fixed a possible crash in :meth:`list.__contains__` when a list
-  is changed during comparing items. Patch by Dong-hee Na.
+  is changed during comparing items. Patch by Donghee Na.
 
 - bpo-39434: :term:`floor division` of float operation now has a better
   performance. Also the message of :exc:`ZeroDivisionError` for this
-  operation is updated. Patch by Dong-hee Na.
+  operation is updated. Patch by Donghee Na.
 
 - bpo-1635741: Port _codecs extension module to multiphase initialization
   (:pep:`489`).
@@ -17772,7 +17818,7 @@ Core and Builtins
   positional-only argument - by Anthony Sottile.
 
 - bpo-39200: Correct the error message when calling the :func:`min` or
-  :func:`max` with no arguments. Patch by Dong-hee Na.
+  :func:`max` with no arguments. Patch by Donghee Na.
 
 - bpo-39200: Correct the error message when trying to construct
   :class:`range` objects with no arguments. Patch by Pablo Galindo.
@@ -17864,7 +17910,7 @@ Library
   3.5 (:issue:`22486`): use :func:`math.gcd` instead.
 
 - bpo-39329: :class:`~smtplib.LMTP` constructor now has an optional
-  *timeout* parameter. Patch by Dong-hee Na.
+  *timeout* parameter. Patch by Donghee Na.
 
 - bpo-39313: Add a new ``exec_function`` option (*--exec-function* in the
   CLI) to ``RefactoringTool`` for making ``exec`` a function. Patch by
@@ -17872,11 +17918,11 @@ Library
 
 - bpo-39259: :class:`~ftplib.FTP_TLS` and :class:`~ftplib.FTP_TLS` now raise
   a :class:`ValueError` if the given timeout for their constructor is zero
-  to prevent the creation of a non-blocking socket. Patch by Dong-hee Na.
+  to prevent the creation of a non-blocking socket. Patch by Donghee Na.
 
 - bpo-39259: :class:`~smtplib.SMTP` and :class:`~smtplib.SMTP_SSL` now raise
   a :class:`ValueError` if the given timeout for their constructor is zero
-  to prevent the creation of a non-blocking socket. Patch by Dong-hee Na.
+  to prevent the creation of a non-blocking socket. Patch by Donghee Na.
 
 - bpo-39310: Add :func:`math.ulp`: return the value of the least significant
   bit of a float.
@@ -17887,7 +17933,7 @@ Library
 
 - bpo-39259: :class:`~nntplib.NNTP` and :class:`~nntplib.NNTP_SSL` now raise
   a :class:`ValueError` if the given timeout for their constructor is zero
-  to prevent the creation of a non-blocking socket. Patch by Dong-hee Na.
+  to prevent the creation of a non-blocking socket. Patch by Donghee Na.
 
 - bpo-38901: When you specify prompt='.' or equivalently python -m venv
   --prompt . ... the basename of the current directory is used to set the
@@ -17898,7 +17944,7 @@ Library
 
 - bpo-39259: :class:`~poplib.POP3` and :class:`~poplib.POP3_SSL` now raise a
   :class:`ValueError` if the given timeout for their constructor is zero to
-  prevent the creation of a non-blocking socket. Patch by Dong-hee Na.
+  prevent the creation of a non-blocking socket. Patch by Donghee Na.
 
 - bpo-39242: Updated the Gmane domain from news.gmane.org to news.gmane.io
   which is used for examples of :class:`~nntplib.NNTP` news reader server
@@ -17926,7 +17972,7 @@ Library
   new task spawning before exception raising.
 
 - bpo-38871: Correctly parenthesize filter-based statements that contain
-  lambda expressions in mod:`lib2to3`. Patch by Dong-hee Na.
+  lambda expressions in mod:`lib2to3`. Patch by Donghee Na.
 
 - bpo-39142: A change was made to logging.config.dictConfig to avoid
   converting instances of named tuples to ConvertingTuple. It's assumed that
@@ -17970,7 +18016,7 @@ Library
   :meth:`~imaplib.IMAP4.open` method now has an optional *timeout* parameter
   with this change. The overridden methods of :class:`~imaplib.IMAP4_SSL`
   and :class:`~imaplib.IMAP4_stream` were applied to this change. Patch by
-  Dong-hee Na.
+  Donghee Na.
 
 - bpo-35182: Fixed :func:`Popen.communicate` subsequent call crash when the
   child process has already closed any piped standard stream, but still
@@ -18460,7 +18506,7 @@ Security
 
 - bpo-38243: Escape the server title of
   :class:`xmlrpc.server.DocXMLRPCServer` when rendering the document page as
-  HTML. (Contributed by Dong-hee Na in :issue:`38243`.)
+  HTML. (Contributed by Donghee Na in :issue:`38243`.)
 
 - bpo-38174: Update vendorized expat library version to 2.2.8, which
   resolves CVE-2019-15903.
@@ -18521,7 +18567,7 @@ Core and Builtins
   without arguments in decorators.
 
 - bpo-38525: Fix a segmentation fault when using reverse iterators of empty
-  ``dict`` objects. Patch by Dong-hee Na and Inada Naoki.
+  ``dict`` objects. Patch by Donghee Na and Inada Naoki.
 
 - bpo-38465: :class:`bytearray`, :class:`~array.array` and
   :class:`~mmap.mmap` objects allow now to export more than ``2**31``
@@ -18552,7 +18598,7 @@ Core and Builtins
   test that objects visited by ``tp_traverse()`` are valid.
 
 - bpo-38210: Remove unnecessary intersection and update set operation in
-  dictview with empty set. (Contributed by Dong-hee Na in :issue:`38210`.)
+  dictview with empty set. (Contributed by Donghee Na in :issue:`38210`.)
 
 - bpo-38402: Check the error from the system's underlying ``crypt`` or
   ``crypt_r``.
@@ -18855,7 +18901,7 @@ Library
 
 - bpo-38602: Added constants :const:`~fcntl.F_OFD_GETLK`,
   :const:`~fcntl.F_OFD_SETLK` and :const:`~fcntl.F_OFD_SETLKW` to the
-  :mod:`fcntl` module. Patch by Dong-hee Na.
+  :mod:`fcntl` module. Patch by Donghee Na.
 
 - bpo-38334: Fixed seeking backward on an encrypted
   :class:`zipfile.ZipExtFile`.
@@ -18882,7 +18928,7 @@ Library
 - bpo-38521: Fixed erroneous equality comparison in statistics.NormalDist().
 
 - bpo-38493: Added :const:`~os.CLD_KILLED` and :const:`~os.CLD_STOPPED` for
-  :attr:`si_code`. Patch by Dong-hee Na.
+  :attr:`si_code`. Patch by Donghee Na.
 
 - bpo-38478: Fixed a bug in :meth:`inspect.signature.bind` that was causing
   it to fail when handling a keyword argument with same name as
@@ -19081,7 +19127,7 @@ Library
   it should avoid dynamic lookup.
 
 - bpo-35923: Update :class:`importlib.machinery.BuiltinImporter` to use
-  ``loader._ORIGIN`` instead of a hardcoded value. Patch by Dong-hee Na.
+  ``loader._ORIGIN`` instead of a hardcoded value. Patch by Donghee Na.
 
 - bpo-38010: In ``importlib.metadata`` sync with ``importlib_metadata``
   0.20, clarifying behavior of ``files()`` and fixing issue where only one
@@ -19150,7 +19196,7 @@ Library
   etc.
 
 - bpo-37798: Update test_statistics.py to verify that the statistics module
-  works well for both C and Python implementations. Patch by Dong-hee Na
+  works well for both C and Python implementations. Patch by Donghee Na
 
 - bpo-26589: Added a new status code to the http module: 451
   UNAVAILABLE_FOR_LEGAL_REASONS
@@ -19191,10 +19237,10 @@ Library
   platforms.
 
 - bpo-37798: Add C fastpath for statistics.NormalDist.inv_cdf() Patch by
-  Dong-hee Na
+  Donghee Na
 
 - bpo-37804: Remove the deprecated method `threading.Thread.isAlive()`.
-  Patch by Dong-hee Na.
+  Patch by Donghee Na.
 
 - bpo-37819: Add Fraction.as_integer_ratio() to match the corresponding
   methods in bool, int, float, and decimal.
@@ -19828,7 +19874,7 @@ Tests
 
 - bpo-38018: Increase code coverage for multiprocessing.shared_memory.
 
-- bpo-37805: Add tests for json.dump(..., skipkeys=True). Patch by Dong-hee
+- bpo-37805: Add tests for json.dump(..., skipkeys=True). Patch by Donghee
   Na.
 
 - bpo-37531: Enhance regrtest multiprocess timeout: write a message when
@@ -19837,8 +19883,8 @@ Tests
 
 - bpo-37876: Add tests for ROT-13 codec.
 
-- bpo-36833: Added tests for PyDateTime_xxx_GET_xxx() macros of the C API of
-  the :mod:`datetime` module. Patch by Joannah Nanjekye.
+- bpo-36833: Added tests for :samp:`PyDateTime_{xxx}_GET_{xxx}()` macros of
+  the C API of the :mod:`datetime` module. Patch by Joannah Nanjekye.
 
 - bpo-37558: Fix test_shared_memory_cleaned_after_process_termination name
   handling
@@ -19995,9 +20041,9 @@ Build
 - bpo-37468: ``make install`` no longer installs ``wininst-*.exe`` files
   used by distutils bdist_wininst: bdist_wininst only works on Windows.
 
-- bpo-37189: Many ``PyRun_XXX()`` functions like :c:func:`PyRun_String` were
-  no longer exported in ``libpython38.dll`` by mistake. Export them again to
-  fix the ABI compatibility.
+- bpo-37189: Many :samp:`PyRun_{XXX}()` functions like
+  :c:func:`PyRun_String` were no longer exported in ``libpython38.dll`` by
+  mistake. Export them again to fix the ABI compatibility.
 
 - bpo-25361: Enables use of SSE2 instructions in Windows 32-bit build.
 
@@ -21549,7 +21595,7 @@ Build
   ``PyMODINIT_FUNC`` macros of ``pyport.h`` when ``Py_BUILD_CORE_MODULE`` is
   defined. The ``Py_BUILD_CORE_MODULE`` define must be now be used to build
   a C extension as a dynamic library accessing Python internals: export the
-  PyInit_xxx() function in DLL exports on Windows.
+  :samp:`PyInit_{xxx}()` function in DLL exports on Windows.
 
 - bpo-31904: Don't build the ``_crypt`` extension on VxWorks.
 
@@ -22365,7 +22411,7 @@ Core and Builtins
 - bpo-35224: Implement :pep:`572` (assignment expressions). Patch by Emily
   Morehouse.
 
-- bpo-32492: Speed up :class:`namedtuple` attribute access by 1.6x using a C
+- bpo-32492: Speed up :func:`namedtuple` attribute access by 1.6x using a C
   fast-path for the name descriptors. Patch by Pablo Galindo.
 
 - bpo-35214: Fixed an out of bounds memory access when parsing a truncated
@@ -22903,7 +22949,7 @@ Library
   set the result of an internal future if it's already done.
 
 - bpo-35283: Add a deprecated warning for the
-  :meth:`threading.Thread.isAlive` method. Patch by Dong-hee Na.
+  :meth:`threading.Thread.isAlive` method. Patch by Donghee Na.
 
 - bpo-35664: Improve operator.itemgetter() performance by 33% with optimized
   argument handling and with adding a fast path for the common case of a
@@ -23930,7 +23976,7 @@ Library
   classes and Enum members.
 
 - bpo-33197: Update error message when constructing invalid
-  inspect.Parameters Patch by Dong-hee Na.
+  inspect.Parameters Patch by Donghee Na.
 
 - bpo-33383: Fixed crash in the get() method of the :mod:`dbm.ndbm` database
   object when it is called with a single argument.
@@ -24988,7 +25034,8 @@ IDLE
 
 - bpo-35099: Improve the doc about IDLE running user code.   The section is
   renamed from "IDLE -- console differences" is renamed "Running user code".
-  It mostly covers the implications of using custom sys.stdxxx objects.
+  It mostly covers the implications of using custom :samp:`sys.std{xxx}`
+  objects.
 
 - bpo-35097: Add IDLE doc subsection explaining editor windows. Topics
   include opening, title and status bar, .py* extension, and running.
@@ -25507,7 +25554,7 @@ Library
   marked for removal in Python 3.8
 
 - bpo-33197: Update error message when constructing invalid
-  inspect.Parameters Patch by Dong-hee Na.
+  inspect.Parameters Patch by Donghee Na.
 
 - bpo-33263: Fix FD leak in `_SelectorSocketTransport`  Patch by Vlad
   Starostin.
@@ -27060,10 +27107,10 @@ Library
   arg should be optional
 
 - bpo-32046: Updates 2to3 to convert from operator.isCallable(obj) to
-  callable(obj). Patch by Dong-hee Na.
+  callable(obj). Patch by Donghee Na.
 
 - bpo-32018: inspect.signature should follow :pep:`8`, if the parameter has
-  an annotation and a default value. Patch by Dong-hee Na.
+  an annotation and a default value. Patch by Donghee Na.
 
 - bpo-32025: Add time.thread_time() and time.thread_time_ns()
 
@@ -27886,7 +27933,7 @@ Core and Builtins
 
 - bpo-12414: sys.getsizeof() on a code object now returns the sizes which
   includes the code struct and sizes of objects which it references. Patch
-  by Dong-hee Na.
+  by Donghee Na.
 
 - bpo-29839: len() now raises ValueError rather than OverflowError if
   __len__() returned a large negative integer.
@@ -28446,7 +28493,7 @@ Library
 - bpo-29169: Update zlib to 1.2.11.
 
 - bpo-30119: ftplib.FTP.putline() now throws ValueError on commands that
-  contains CR or LF. Patch by Dong-hee Na.
+  contains CR or LF. Patch by Donghee Na.
 
 - bpo-30879: os.listdir() and os.scandir() now emit bytes names when called
   with bytes-like argument.
@@ -28469,7 +28516,7 @@ Library
   They now always return bytes.
 
 - bpo-30616: Functional API of enum allows to create empty enums. Patched by
-  Dong-hee Na
+  Donghee Na
 
 - bpo-30038: Fix race condition between signal delivery and wakeup file
   descriptor. Patch by Nathaniel Smith.
@@ -28558,7 +28605,7 @@ Library
   Ma Lin.
 
 - bpo-30149: inspect.signature() now supports callables with
-  variable-argument parameters wrapped with partialmethod. Patch by Dong-hee
+  variable-argument parameters wrapped with partialmethod. Patch by Donghee
   Na.
 
 - bpo-30436: importlib.find_spec() raises ModuleNotFoundError instead of
@@ -29921,7 +29968,7 @@ Library
   byte/string literals on pydoc. Patch by Andrés Delfino.
 
 - bpo-33197: Update error message when constructing invalid
-  inspect.Parameters Patch by Dong-hee Na.
+  inspect.Parameters Patch by Donghee Na.
 
 - bpo-33383: Fixed crash in the get() method of the :mod:`dbm.ndbm` database
   object when it is called with a single argument.
@@ -31091,7 +31138,7 @@ Library
   Heimes.
 
 - bpo-30119: ftplib.FTP.putline() now throws ValueError on commands that
-  contains CR or LF. Patch by Dong-hee Na.
+  contains CR or LF. Patch by Donghee Na.
 
 - bpo-30595: multiprocessing.Queue.get() with a timeout now polls its reader
   in non-blocking mode if it succeeded to acquire the lock but the acquire
@@ -31441,7 +31488,7 @@ Core and Builtins
 
 - bpo-12414: sys.getsizeof() on a code object now returns the sizes which
   includes the code struct and sizes of objects which it references. Patch
-  by Dong-hee Na.
+  by Donghee Na.
 
 - bpo-29949: Fix memory usage regression of set and frozenset object.
 
@@ -31469,7 +31516,7 @@ Library
 -------
 
 - bpo-30616: Functional API of enum allows to create empty enums. Patched by
-  Dong-hee Na
+  Donghee Na
 
 - bpo-30038: Fix race condition between signal delivery and wakeup file
   descriptor. Patch by Nathaniel Smith.
@@ -31480,7 +31527,7 @@ Library
   reference cycle to not keep objects alive longer than expected.
 
 - bpo-30149: inspect.signature() now supports callables with
-  variable-argument parameters wrapped with partialmethod. Patch by Dong-hee
+  variable-argument parameters wrapped with partialmethod. Patch by Donghee
   Na.
 
 - bpo-30645: Fix path calculation in imp.load_package(), fixing it for cases
@@ -35304,7 +35351,7 @@ Library
 -------
 
 - bpo-30119: ftplib.FTP.putline() now throws ValueError on commands that
-  contains CR or LF. Patch by Dong-hee Na.
+  contains CR or LF. Patch by Donghee Na.
 
 
 What's New in Python 3.5.4 release candidate 1?
@@ -35434,7 +35481,7 @@ Library
   reference cycle to not keep objects alive longer than expected.
 
 - bpo-30149: inspect.signature() now supports callables with
-  variable-argument parameters wrapped with partialmethod. Patch by Dong-hee
+  variable-argument parameters wrapped with partialmethod. Patch by Donghee
   Na.
 
 - bpo-29931: Fixed comparison check for ipaddress.ip_interface objects.
@@ -37243,8 +37290,8 @@ Core and Builtins
 - bpo-25131: Make the line number and column offset of set/dict literals and
   comprehensions correspond to the opening brace.
 
-- bpo-25150: Hide the private _Py_atomic_xxx symbols from the public
-  Python.h header to fix a compilation error with OpenMP.
+- bpo-25150: Hide the private :samp:`_Py_atomic_{xxx}` symbols from the
+  public Python.h header to fix a compilation error with OpenMP.
   PyThreadState_GET() becomes an alias to PyThreadState_Get() to avoid ABI
   incompatibilities.
 
@@ -37822,8 +37869,8 @@ IDLE
 - bpo-24745: Idle editor default font. Switch from Courier to
   platform-sensitive TkFixedFont.  This should not affect current customized
   font selections.  If there is a problem, edit
-  $HOME/.idlerc/config-main.cfg and remove 'fontxxx' entries from [Editor
-  Window].  Patch by Mark Roseman.
+  $HOME/.idlerc/config-main.cfg and remove ':samp:`font{xxx}`' entries from
+  [Editor Window].  Patch by Mark Roseman.
 
 - bpo-21192: Idle editor. When a file is run, put its name in the restart
   bar. Do not print false prompts. Original patch by Adnan Umer.
