@@ -4,6 +4,7 @@ import gc
 import locale
 import operator
 import os
+import random
 import struct
 import subprocess
 import sys
@@ -18,10 +19,17 @@ import textwrap
 import unittest
 import warnings
 
+try:
+    from test.support import interpreters
+except ImportError:
+    interpreters = None
 
-# count the number of test runs, used to create unique
-# strings to intern in test_intern()
-INTERN_NUMRUNS = 0
+
+def requires_subinterpreters(func):
+    deco = unittest.skipIf(interpreters is None,
+                     'Test requires subinterpreters')
+    return deco(func)
+
 
 DICT_KEY_STRUCT_FORMAT = 'n2BI2n'
 
@@ -685,10 +693,8 @@ class SysModuleTest(unittest.TestCase):
         self.assertEqual(sys.__stdout__.encoding, sys.__stderr__.encoding)
 
     def test_intern(self):
-        global INTERN_NUMRUNS
-        INTERN_NUMRUNS += 1
         self.assertRaises(TypeError, sys.intern)
-        s = "never interned before" + str(INTERN_NUMRUNS)
+        s = "never interned before" + str(random.randrange(0, 10**9))
         self.assertTrue(sys.intern(s) is s)
         s2 = s.swapcase().swapcase()
         self.assertTrue(sys.intern(s2) is s)
@@ -703,6 +709,35 @@ class SysModuleTest(unittest.TestCase):
                 return 123
 
         self.assertRaises(TypeError, sys.intern, S("abc"))
+
+    @requires_subinterpreters
+    def test_subinterp_intern_dynamically_allocated(self):
+        s = "never interned before" + str(random.randrange(0, 10**9))
+        t = sys.intern(s)
+        self.assertIs(t, s)
+
+        interp = interpreters.create()
+        interp.run(textwrap.dedent(f'''
+            import sys
+            t = sys.intern({s!r})
+            assert id(t) != {id(s)}, (id(t), {id(s)})
+            assert id(t) != {id(t)}, (id(t), {id(t)})
+            '''))
+
+    @requires_subinterpreters
+    def test_subinterp_intern_statically_allocated(self):
+        # See Tools/build/generate_global_objects.py for the list
+        # of strings that are always statically allocated.
+        s = '__init__'
+        t = sys.intern(s)
+
+        print('------------------------')
+        interp = interpreters.create()
+        interp.run(textwrap.dedent(f'''
+            import sys
+            t = sys.intern({s!r})
+            assert id(t) == {id(t)}, (id(t), {id(t)})
+            '''))
 
     def test_sys_flags(self):
         self.assertTrue(sys.flags)

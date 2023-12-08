@@ -1,12 +1,36 @@
 import unittest
 import sys
 from collections import OrderedDict
-from test import support
 from test.support import import_helper
-import _testcapi
 
+_testcapi = import_helper.import_module('_testcapi')
+from _testcapi import PY_SSIZE_T_MIN, PY_SSIZE_T_MAX
 
 NULL = None
+
+class StrSubclass(str):
+    pass
+
+class BytesSubclass(bytes):
+    pass
+
+class WithStr:
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return self.value
+
+class WithRepr:
+    def __init__(self, value):
+        self.value = value
+    def __repr__(self):
+        return self.value
+
+class WithBytes:
+    def __init__(self, value):
+        self.value = value
+    def __bytes__(self):
+        return self.value
 
 class TestObject:
     @property
@@ -44,6 +68,68 @@ def gen():
 
 
 class CAPITest(unittest.TestCase):
+    def assertTypedEqual(self, actual, expected):
+        self.assertIs(type(actual), type(expected))
+        self.assertEqual(actual, expected)
+
+    def test_object_str(self):
+        # Test PyObject_Str()
+        object_str = _testcapi.object_str
+        self.assertTypedEqual(object_str(''), '')
+        self.assertTypedEqual(object_str('abc'), 'abc')
+        self.assertTypedEqual(object_str('\U0001f40d'), '\U0001f40d')
+        self.assertTypedEqual(object_str(StrSubclass('abc')), 'abc')
+        self.assertTypedEqual(object_str(WithStr('abc')), 'abc')
+        self.assertTypedEqual(object_str(WithStr(StrSubclass('abc'))), StrSubclass('abc'))
+        self.assertTypedEqual(object_str(WithRepr('<abc>')), '<abc>')
+        self.assertTypedEqual(object_str(WithRepr(StrSubclass('<abc>'))), StrSubclass('<abc>'))
+        self.assertTypedEqual(object_str(NULL), '<NULL>')
+
+    def test_object_repr(self):
+        # Test PyObject_Repr()
+        object_repr = _testcapi.object_repr
+        self.assertTypedEqual(object_repr(''), "''")
+        self.assertTypedEqual(object_repr('abc'), "'abc'")
+        self.assertTypedEqual(object_repr('\U0001f40d'), "'\U0001f40d'")
+        self.assertTypedEqual(object_repr(StrSubclass('abc')), "'abc'")
+        self.assertTypedEqual(object_repr(WithRepr('<abc>')), '<abc>')
+        self.assertTypedEqual(object_repr(WithRepr(StrSubclass('<abc>'))), StrSubclass('<abc>'))
+        self.assertTypedEqual(object_repr(WithRepr('<\U0001f40d>')), '<\U0001f40d>')
+        self.assertTypedEqual(object_repr(WithRepr(StrSubclass('<\U0001f40d>'))), StrSubclass('<\U0001f40d>'))
+        self.assertTypedEqual(object_repr(NULL), '<NULL>')
+
+    def test_object_ascii(self):
+        # Test PyObject_ASCII()
+        object_ascii = _testcapi.object_ascii
+        self.assertTypedEqual(object_ascii(''), "''")
+        self.assertTypedEqual(object_ascii('abc'), "'abc'")
+        self.assertTypedEqual(object_ascii('\U0001f40d'), r"'\U0001f40d'")
+        self.assertTypedEqual(object_ascii(StrSubclass('abc')), "'abc'")
+        self.assertTypedEqual(object_ascii(WithRepr('<abc>')), '<abc>')
+        self.assertTypedEqual(object_ascii(WithRepr(StrSubclass('<abc>'))), StrSubclass('<abc>'))
+        self.assertTypedEqual(object_ascii(WithRepr('<\U0001f40d>')), r'<\U0001f40d>')
+        self.assertTypedEqual(object_ascii(WithRepr(StrSubclass('<\U0001f40d>'))), r'<\U0001f40d>')
+        self.assertTypedEqual(object_ascii(NULL), '<NULL>')
+
+    def test_object_bytes(self):
+        # Test PyObject_Bytes()
+        object_bytes = _testcapi.object_bytes
+        self.assertTypedEqual(object_bytes(b''), b'')
+        self.assertTypedEqual(object_bytes(b'abc'), b'abc')
+        self.assertTypedEqual(object_bytes(BytesSubclass(b'abc')), b'abc')
+        self.assertTypedEqual(object_bytes(WithBytes(b'abc')), b'abc')
+        self.assertTypedEqual(object_bytes(WithBytes(BytesSubclass(b'abc'))), BytesSubclass(b'abc'))
+        self.assertTypedEqual(object_bytes(bytearray(b'abc')), b'abc')
+        self.assertTypedEqual(object_bytes(memoryview(b'abc')), b'abc')
+        self.assertTypedEqual(object_bytes([97, 98, 99]), b'abc')
+        self.assertTypedEqual(object_bytes((97, 98, 99)), b'abc')
+        self.assertTypedEqual(object_bytes(iter([97, 98, 99])), b'abc')
+        self.assertRaises(TypeError, object_bytes, WithBytes(bytearray(b'abc')))
+        self.assertRaises(TypeError, object_bytes, WithBytes([97, 98, 99]))
+        self.assertRaises(TypeError, object_bytes, 3)
+        self.assertRaises(TypeError, object_bytes, 'abc')
+        self.assertRaises(TypeError, object_bytes, object())
+        self.assertTypedEqual(object_bytes(NULL), b'<NULL>')
 
     def test_object_getattr(self):
         xgetattr = _testcapi.object_getattr
@@ -446,6 +532,8 @@ class CAPITest(unittest.TestCase):
         self.assertEqual(getitem(lst, 1), 'b')
         self.assertEqual(getitem(lst, -1), 'c')
         self.assertRaises(IndexError, getitem, lst, 3)
+        self.assertRaises(IndexError, getitem, lst, PY_SSIZE_T_MAX)
+        self.assertRaises(IndexError, getitem, lst, PY_SSIZE_T_MIN)
 
         self.assertRaises(TypeError, getitem, 42, 1)
         self.assertRaises(TypeError, getitem, {}, 1)
@@ -470,6 +558,9 @@ class CAPITest(unittest.TestCase):
         self.assertEqual(repeat(('a', 'b'), 2), ('a', 'b', 'a', 'b'))
         self.assertEqual(repeat(['a', 'b'], 0), [])
         self.assertEqual(repeat(['a', 'b'], -1), [])
+        self.assertEqual(repeat(['a', 'b'], PY_SSIZE_T_MIN), [])
+        self.assertEqual(repeat([], PY_SSIZE_T_MAX), [])
+        self.assertRaises(MemoryError, repeat, ['a', 'b'], PY_SSIZE_T_MAX)
 
         self.assertRaises(TypeError, repeat, set(), 2)
         self.assertRaises(TypeError, repeat, 42, 2)
@@ -503,6 +594,9 @@ class CAPITest(unittest.TestCase):
         self.assertEqual(inplacerepeat(('a', 'b'), 2), ('a', 'b', 'a', 'b'))
         self.assertEqual(inplacerepeat(['a', 'b'], 0), [])
         self.assertEqual(inplacerepeat(['a', 'b'], -1), [])
+        self.assertEqual(inplacerepeat(['a', 'b'], PY_SSIZE_T_MIN), [])
+        self.assertEqual(inplacerepeat([], PY_SSIZE_T_MAX), [])
+        self.assertRaises(MemoryError, inplacerepeat, ['a', 'b'], PY_SSIZE_T_MAX)
 
         self.assertRaises(TypeError, inplacerepeat, set(), 2)
         self.assertRaises(TypeError, inplacerepeat, 42, 2)
@@ -519,6 +613,8 @@ class CAPITest(unittest.TestCase):
         setitem(lst, 0, NULL)
         self.assertEqual(lst, ['x', 'y'])
         self.assertRaises(IndexError, setitem, lst, 3, 'x')
+        self.assertRaises(IndexError, setitem, lst, PY_SSIZE_T_MAX, 'x')
+        self.assertRaises(IndexError, setitem, lst, PY_SSIZE_T_MIN, 'x')
 
         self.assertRaises(TypeError, setitem, 42, 1, 'x')
         self.assertRaises(TypeError, setitem, {}, 1, 'x')
@@ -532,6 +628,8 @@ class CAPITest(unittest.TestCase):
         delitem(lst, -1)
         self.assertEqual(lst, ['a'])
         self.assertRaises(IndexError, delitem, lst, 3)
+        self.assertRaises(IndexError, delitem, lst, PY_SSIZE_T_MAX)
+        self.assertRaises(IndexError, delitem, lst, PY_SSIZE_T_MIN)
 
         self.assertRaises(TypeError, delitem, 42, 1)
         self.assertRaises(TypeError, delitem, {}, 1)
@@ -541,13 +639,19 @@ class CAPITest(unittest.TestCase):
         setslice = _testcapi.sequence_setslice
 
         # Correct case:
-        data = [1, 2, 3, 4, 5]
-        data_copy = data.copy()
+        for start in [*range(-6, 7), PY_SSIZE_T_MIN, PY_SSIZE_T_MAX]:
+            for stop in [*range(-6, 7), PY_SSIZE_T_MIN, PY_SSIZE_T_MAX]:
+                data = [1, 2, 3, 4, 5]
+                data_copy = [1, 2, 3, 4, 5]
+                setslice(data, start, stop, [8, 9])
+                data_copy[start:stop] = [8, 9]
+                self.assertEqual(data, data_copy)
 
-        setslice(data, 1, 3, [8, 9])
-        data_copy[1:3] = [8, 9]
-        self.assertEqual(data, data_copy)
-        self.assertEqual(data, [1, 8, 9, 4, 5])
+                data = [1, 2, 3, 4, 5]
+                data_copy = [1, 2, 3, 4, 5]
+                setslice(data, start, stop, NULL)
+                del data_copy[start:stop]
+                self.assertEqual(data, data_copy)
 
         # Custom class:
         class Custom:
@@ -573,21 +677,17 @@ class CAPITest(unittest.TestCase):
         self.assertRaises(TypeError, setslice, object(), 1, 3, 'xy')
         self.assertRaises(SystemError, setslice, NULL, 1, 3, 'xy')
 
-        data_copy = data.copy()
-        setslice(data_copy, 1, 3, NULL)
-        self.assertEqual(data_copy, [1, 4, 5])
-
     def test_sequence_delslice(self):
         delslice = _testcapi.sequence_delslice
 
         # Correct case:
-        data = [1, 2, 3, 4, 5]
-        data_copy = data.copy()
-
-        delslice(data, 1, 3)
-        del data_copy[1:3]
-        self.assertEqual(data, data_copy)
-        self.assertEqual(data, [1, 4, 5])
+        for start in [*range(-6, 7), PY_SSIZE_T_MIN, PY_SSIZE_T_MAX]:
+            for stop in [*range(-6, 7), PY_SSIZE_T_MIN, PY_SSIZE_T_MAX]:
+                data = [1, 2, 3, 4, 5]
+                data_copy = [1, 2, 3, 4, 5]
+                delslice(data, start, stop)
+                del data_copy[start:stop]
+                self.assertEqual(data, data_copy)
 
         # Custom class:
         class Custom:

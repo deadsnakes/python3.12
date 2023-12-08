@@ -602,6 +602,11 @@ class BuiltinTest(unittest.TestCase):
         # test that object has a __dir__()
         self.assertEqual(sorted([].__dir__()), dir([]))
 
+    def test___ne__(self):
+        self.assertFalse(None.__ne__(None))
+        self.assertTrue(None.__ne__(0))
+        self.assertTrue(None.__ne__("abc"))
+
     def test_divmod(self):
         self.assertEqual(divmod(12, 7), (1, 5))
         self.assertEqual(divmod(-12, 7), (-2, 2))
@@ -2014,6 +2019,23 @@ class BuiltinTest(unittest.TestCase):
         bad_iter = map(int, "X")
         self.assertRaises(ValueError, array.extend, bad_iter)
 
+    def test_bytearray_join_with_misbehaving_iterator(self):
+        # Issue #112625
+        array = bytearray(b',')
+        def iterator():
+            array.clear()
+            yield b'A'
+            yield b'B'
+        self.assertRaises(BufferError, array.join, iterator())
+
+    def test_bytearray_join_with_custom_iterator(self):
+        # Issue #112625
+        array = bytearray(b',')
+        def iterator():
+            yield b'A'
+            yield b'B'
+        self.assertEqual(bytearray(b'A,B'), array.join(iterator()))
+
     def test_construct_singletons(self):
         for const in None, Ellipsis, NotImplemented:
             tp = type(const)
@@ -2178,8 +2200,6 @@ class PtyTests(unittest.TestCase):
         if pid == 0:
             # Child
             try:
-                # Make sure we don't get stuck if there's a problem
-                signal.alarm(2)
                 os.close(r)
                 with open(w, "w") as wpipe:
                     child(wpipe)
