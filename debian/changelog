@@ -1,3 +1,9 @@
+python3.12 (3.12.1-1+jammy1) jammy; urgency=medium
+
+  * Python 3.12.1 release.
+
+ -- Anthony Sottile <asottile@umich.edu>  Fri, 08 Dec 2023 14:09:32 -0500
+
 python3.12 (3.12.0-1+jammy2) jammy; urgency=medium
 
   * re-enable pgo / lto
