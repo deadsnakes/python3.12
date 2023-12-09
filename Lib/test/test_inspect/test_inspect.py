@@ -28,17 +28,16 @@ except ImportError:
 
 from test.support import cpython_only
 from test.support import MISSING_C_DOCSTRINGS, ALWAYS_EQ
-from test.support.import_helper import DirsOnSysPath
+from test.support.import_helper import DirsOnSysPath, ready_to_import
 from test.support.os_helper import TESTFN
 from test.support.script_helper import assert_python_ok, assert_python_failure
-from test import inspect_fodder as mod
-from test import inspect_fodder2 as mod2
 from test import support
-from test import inspect_stock_annotations
-from test import inspect_stringized_annotations
-from test import inspect_stringized_annotations_2
 
-from test.test_import import _ready_to_import
+from . import inspect_fodder as mod
+from . import inspect_fodder2 as mod2
+from . import inspect_stock_annotations
+from . import inspect_stringized_annotations
+from . import inspect_stringized_annotations_2
 
 
 # Functions tested in this suite:
@@ -2265,6 +2264,10 @@ class TestGetGeneratorState(unittest.TestCase):
             self.generator.throw(RuntimeError)
         self.assertEqual(self._generatorstate(), inspect.GEN_CLOSED)
 
+    def test_closed_after_close(self):
+        self.generator.close()
+        self.assertEqual(self._generatorstate(), inspect.GEN_CLOSED)
+
     def test_running(self):
         # As mentioned on issue #10220, checking for the RUNNING state only
         # makes sense inside the generator itself.
@@ -2372,6 +2375,10 @@ class TestGetCoroutineState(unittest.TestCase):
     def test_closed_after_immediate_exception(self):
         with self.assertRaises(RuntimeError):
             self.coroutine.throw(RuntimeError)
+        self.assertEqual(self._coroutinestate(), inspect.CORO_CLOSED)
+
+    def test_closed_after_close(self):
+        self.coroutine.close()
         self.assertEqual(self._coroutinestate(), inspect.CORO_CLOSED)
 
     def test_easy_debugging(self):
@@ -4517,19 +4524,14 @@ class TestSignatureDefinitions(unittest.TestCase):
         # These have unrepresentable parameter default values of NULL
         needs_null = {"anext"}
         no_signature |= needs_null
-        # These need PEP 457 groups or a signature change to accept None
-        needs_semantic_update = {"round"}
-        no_signature |= needs_semantic_update
         # These need *args support in Argument Clinic
-        needs_varargs = {"breakpoint", "min", "max", "print",
-                         "__build_class__"}
+        needs_varargs = {"breakpoint", "min", "max", "__build_class__"}
         no_signature |= needs_varargs
-        # These simply weren't covered in the initial AC conversion
-        # for builtin callables
-        not_converted_yet = {"open", "__import__"}
-        no_signature |= not_converted_yet
         # These builtin types are expected to provide introspection info
-        types_with_signatures = set()
+        types_with_signatures = {
+            'complex', 'enumerate', 'float', 'list', 'memoryview', 'object',
+            'property', 'reversed', 'tuple',
+        }
         # Check the signatures we expect to be there
         ns = vars(builtins)
         for name, obj in sorted(ns.items()):
@@ -4548,9 +4550,9 @@ class TestSignatureDefinitions(unittest.TestCase):
         # This ensures this test will start failing as more signatures are
         # added, so the affected items can be moved into the scope of the
         # regression test above
-        for name in no_signature:
+        for name in no_signature - needs_null - needs_groups:
             with self.subTest(builtin=name):
-                self.assertIsNone(obj.__text_signature__)
+                self.assertIsNone(ns[name].__text_signature__)
 
     def test_python_function_override_signature(self):
         def func(*args, **kwargs):
@@ -4584,7 +4586,7 @@ class TestSignatureDefinitions(unittest.TestCase):
 
     def test_base_class_have_text_signature(self):
         # see issue 43118
-        from test.ann_module7 import BufferedReader
+        from test.typinganndata.ann_module7 import BufferedReader
         class MyBufferedReader(BufferedReader):
             """buffer reader class."""
 
@@ -4739,7 +4741,7 @@ def foo():
 
     def test_getsource_reload(self):
         # see issue 1218234
-        with _ready_to_import('reload_bug', self.src_before) as (name, path):
+        with ready_to_import('reload_bug', self.src_before) as (name, path):
             module = importlib.import_module(name)
             self.assertInspectEqual(path, module)
             with open(path, 'w', encoding='utf-8') as src:

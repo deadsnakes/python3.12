@@ -406,11 +406,55 @@ set_fstring_expr(struct tok_state* tok, struct token *token, char c) {
         return 0;
     }
 
-    PyObject *res = PyUnicode_DecodeUTF8(
-        tok_mode->last_expr_buffer,
-        tok_mode->last_expr_size - tok_mode->last_expr_end,
-        NULL
-    );
+    PyObject *res = NULL;
+
+    // Check if there is a # character in the expression
+    int hash_detected = 0;
+    for (Py_ssize_t i = 0; i < tok_mode->last_expr_size - tok_mode->last_expr_end; i++) {
+        if (tok_mode->last_expr_buffer[i] == '#') {
+            hash_detected = 1;
+            break;
+        }
+    }
+
+    if (hash_detected) {
+        Py_ssize_t input_length = tok_mode->last_expr_size - tok_mode->last_expr_end;
+        char *result = (char *)PyObject_Malloc((input_length + 1) * sizeof(char));
+        if (!result) {
+            return -1;
+        }
+
+        Py_ssize_t i = 0;
+        Py_ssize_t j = 0;
+
+        for (i = 0, j = 0; i < input_length; i++) {
+            if (tok_mode->last_expr_buffer[i] == '#') {
+                // Skip characters until newline or end of string
+                while (tok_mode->last_expr_buffer[i] != '\0' && i < input_length) {
+                    if (tok_mode->last_expr_buffer[i] == '\n') {
+                        result[j++] = tok_mode->last_expr_buffer[i];
+                        break;
+                    }
+                    i++;
+                }
+            } else {
+                result[j++] = tok_mode->last_expr_buffer[i];
+            }
+        }
+
+        result[j] = '\0';  // Null-terminate the result string
+        res = PyUnicode_DecodeUTF8(result, j, NULL);
+        PyObject_Free(result);
+    } else {
+        res = PyUnicode_DecodeUTF8(
+            tok_mode->last_expr_buffer,
+            tok_mode->last_expr_size - tok_mode->last_expr_end,
+            NULL
+        );
+
+    }
+
+
     if (!res) {
         return -1;
     }
@@ -1366,6 +1410,10 @@ tok_nextc(struct tok_state *tok)
     int rc;
     for (;;) {
         if (tok->cur != tok->inp) {
+            if ((unsigned int) tok->col_offset >= (unsigned int) INT_MAX) {
+                tok->done = E_COLUMNOVERFLOW;
+                return EOF;
+            }
             tok->col_offset++;
             return Py_CHARMASK(*tok->cur++); /* Fast path */
         }
@@ -1648,7 +1696,7 @@ verify_end_of_number(struct tok_state *tok, int c, const char *kind) {
         tok_nextc(tok);
     }
     else /* In future releases, only error will remain. */
-    if (is_potential_identifier_char(c)) {
+    if (c < 128 && is_potential_identifier_char(c)) {
         tok_backup(tok, c);
         syntaxerror(tok, "invalid %s literal", kind);
         return 0;
@@ -2768,9 +2816,26 @@ f_string_middle:
         if (tok->done == E_ERROR) {
             return MAKE_TOKEN(ERRORTOKEN);
         }
-        if (c == EOF || (current_tok->f_string_quote_size == 1 && c == '\n')) {
+        int in_format_spec = (
+                current_tok->last_expr_end != -1
+                &&
+                INSIDE_FSTRING_EXPR(current_tok)
+        );
+
+       if (c == EOF || (current_tok->f_string_quote_size == 1 && c == '\n')) {
             if (tok->decoding_erred) {
                 return MAKE_TOKEN(ERRORTOKEN);
+            }
+
+            // If we are in a format spec and we found a newline,
+            // it means that the format spec ends here and we should
+            // return to the regular mode.
+            if (in_format_spec && c == '\n') {
+                tok_backup(tok, c);
+                TOK_GET_MODE(tok)->kind = TOK_REGULAR_MODE;
+                p_start = tok->start;
+                p_end = tok->cur;
+                return MAKE_TOKEN(FSTRING_MIDDLE);
             }
 
             assert(tok->multi_line_start != NULL);
@@ -2804,11 +2869,6 @@ f_string_middle:
             end_quote_size = 0;
         }
 
-        int in_format_spec = (
-                current_tok->last_expr_end != -1
-                &&
-                INSIDE_FSTRING_EXPR(current_tok)
-        );
         if (c == '{') {
             int peek = tok_nextc(tok);
             if (peek != '{' || in_format_spec) {

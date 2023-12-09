@@ -209,8 +209,7 @@ class TestRmTree(BaseTest, unittest.TestCase):
         errors = []
         def onerror(*args):
             errors.append(args)
-        with self.assertWarns(DeprecationWarning):
-            shutil.rmtree(link, onerror=onerror)
+        shutil.rmtree(link, onerror=onerror)
         self.assertEqual(len(errors), 1)
         self.assertIs(errors[0][0], os.path.islink)
         self.assertEqual(errors[0][1], link)
@@ -271,8 +270,7 @@ class TestRmTree(BaseTest, unittest.TestCase):
         errors = []
         def onerror(*args):
             errors.append(args)
-        with self.assertWarns(DeprecationWarning):
-            shutil.rmtree(link, onerror=onerror)
+        shutil.rmtree(link, onerror=onerror)
         self.assertEqual(len(errors), 1)
         self.assertIs(errors[0][0], os.path.islink)
         self.assertEqual(errors[0][1], link)
@@ -341,8 +339,7 @@ class TestRmTree(BaseTest, unittest.TestCase):
         errors = []
         def onerror(*args):
             errors.append(args)
-        with self.assertWarns(DeprecationWarning):
-            shutil.rmtree(filename, onerror=onerror)
+        shutil.rmtree(filename, onerror=onerror)
         self.assertEqual(len(errors), 2)
         self.assertIs(errors[0][0], os.scandir)
         self.assertEqual(errors[0][1], filename)
@@ -411,8 +408,7 @@ class TestRmTree(BaseTest, unittest.TestCase):
         self.addCleanup(os.chmod, self.child_file_path, old_child_file_mode)
         self.addCleanup(os.chmod, self.child_dir_path, old_child_dir_mode)
 
-        with self.assertWarns(DeprecationWarning):
-            shutil.rmtree(TESTFN, onerror=self.check_args_to_onerror)
+        shutil.rmtree(TESTFN, onerror=self.check_args_to_onerror)
         # Test whether onerror has actually been called.
         self.assertEqual(self.errorState, 3,
                          "Expected call to onerror function did not happen.")
@@ -538,8 +534,7 @@ class TestRmTree(BaseTest, unittest.TestCase):
         self.addCleanup(os.chmod, self.child_file_path, old_child_file_mode)
         self.addCleanup(os.chmod, self.child_dir_path, old_child_dir_mode)
 
-        with self.assertWarns(DeprecationWarning):
-            shutil.rmtree(TESTFN, onerror=onerror, onexc=onexc)
+        shutil.rmtree(TESTFN, onerror=onerror, onexc=onexc)
         self.assertTrue(onexc_called)
         self.assertFalse(onerror_called)
 
@@ -582,6 +577,41 @@ class TestRmTree(BaseTest, unittest.TestCase):
         else:
             self.assertFalse(shutil._use_fd_functions)
             self.assertFalse(shutil.rmtree.avoids_symlink_attacks)
+
+    @unittest.skipUnless(shutil._use_fd_functions, "requires safe rmtree")
+    def test_rmtree_fails_on_close(self):
+        # Test that the error handler is called for failed os.close() and that
+        # os.close() is only called once for a file descriptor.
+        tmp = self.mkdtemp()
+        dir1 = os.path.join(tmp, 'dir1')
+        os.mkdir(dir1)
+        dir2 = os.path.join(dir1, 'dir2')
+        os.mkdir(dir2)
+        def close(fd):
+            orig_close(fd)
+            nonlocal close_count
+            close_count += 1
+            raise OSError
+
+        close_count = 0
+        with support.swap_attr(os, 'close', close) as orig_close:
+            with self.assertRaises(OSError):
+                shutil.rmtree(dir1)
+        self.assertTrue(os.path.isdir(dir2))
+        self.assertEqual(close_count, 2)
+
+        close_count = 0
+        errors = []
+        def onexc(*args):
+            errors.append(args)
+        with support.swap_attr(os, 'close', close) as orig_close:
+            shutil.rmtree(dir1, onexc=onexc)
+        self.assertEqual(len(errors), 2)
+        self.assertIs(errors[0][0], close)
+        self.assertEqual(errors[0][1], dir2)
+        self.assertIs(errors[1][0], close)
+        self.assertEqual(errors[1][1], dir1)
+        self.assertEqual(close_count, 2)
 
     @unittest.skipUnless(shutil._use_fd_functions, "dir_fd is not supported")
     def test_rmtree_with_dir_fd(self):
@@ -2068,6 +2098,14 @@ class TestWhich(BaseTest, unittest.TestCase):
         self.curdir = os.curdir
         self.ext = ".EXE"
 
+    def to_text_type(self, s):
+        '''
+        In this class we're testing with str, so convert s to a str
+        '''
+        if isinstance(s, bytes):
+            return s.decode()
+        return s
+
     def test_basic(self):
         # Given an EXE in a directory, it should be returned.
         rv = shutil.which(self.file, path=self.dir)
@@ -2255,9 +2293,9 @@ class TestWhich(BaseTest, unittest.TestCase):
 
     @unittest.skipUnless(sys.platform == "win32", 'test specific to Windows')
     def test_pathext(self):
-        ext = ".xyz"
+        ext = self.to_text_type(".xyz")
         temp_filexyz = tempfile.NamedTemporaryFile(dir=self.temp_dir,
-                                                   prefix="Tmp2", suffix=ext)
+                                                   prefix=self.to_text_type("Tmp2"), suffix=ext)
         os.chmod(temp_filexyz.name, stat.S_IXUSR)
         self.addCleanup(temp_filexyz.close)
 
@@ -2266,16 +2304,16 @@ class TestWhich(BaseTest, unittest.TestCase):
         program = os.path.splitext(program)[0]
 
         with os_helper.EnvironmentVarGuard() as env:
-            env['PATHEXT'] = ext
+            env['PATHEXT'] = ext if isinstance(ext, str) else ext.decode()
             rv = shutil.which(program, path=self.temp_dir)
             self.assertEqual(rv, temp_filexyz.name)
 
     # Issue 40592: See https://bugs.python.org/issue40592
     @unittest.skipUnless(sys.platform == "win32", 'test specific to Windows')
     def test_pathext_with_empty_str(self):
-        ext = ".xyz"
+        ext = self.to_text_type(".xyz")
         temp_filexyz = tempfile.NamedTemporaryFile(dir=self.temp_dir,
-                                                   prefix="Tmp2", suffix=ext)
+                                                   prefix=self.to_text_type("Tmp2"), suffix=ext)
         self.addCleanup(temp_filexyz.close)
 
         # strip path and extension
@@ -2283,7 +2321,7 @@ class TestWhich(BaseTest, unittest.TestCase):
         program = os.path.splitext(program)[0]
 
         with os_helper.EnvironmentVarGuard() as env:
-            env['PATHEXT'] = f"{ext};"  # note the ;
+            env['PATHEXT'] = f"{ext if isinstance(ext, str) else ext.decode()};"  # note the ;
             rv = shutil.which(program, path=self.temp_dir)
             self.assertEqual(rv, temp_filexyz.name)
 
@@ -2291,13 +2329,14 @@ class TestWhich(BaseTest, unittest.TestCase):
     @unittest.skipUnless(sys.platform == "win32", 'test specific to Windows')
     def test_pathext_applied_on_files_in_path(self):
         with os_helper.EnvironmentVarGuard() as env:
-            env["PATH"] = self.temp_dir
+            env["PATH"] = self.temp_dir if isinstance(self.temp_dir, str) else self.temp_dir.decode()
             env["PATHEXT"] = ".test"
 
-            test_path = pathlib.Path(self.temp_dir) / "test_program.test"
-            test_path.touch(mode=0o755)
+            test_path = os.path.join(self.temp_dir, self.to_text_type("test_program.test"))
+            open(test_path, 'w').close()
+            os.chmod(test_path, 0o755)
 
-            self.assertEqual(shutil.which("test_program"), str(test_path))
+            self.assertEqual(shutil.which(self.to_text_type("test_program")), test_path)
 
     # See GH-75586
     @unittest.skipUnless(sys.platform == "win32", 'test specific to Windows')
@@ -2313,6 +2352,50 @@ class TestWhich(BaseTest, unittest.TestCase):
             self.assertFalse(shutil._win_path_needs_curdir('dontcare', os.X_OK))
             need_curdir_mock.assert_called_once_with('dontcare')
 
+    # See GH-109590
+    @unittest.skipUnless(sys.platform == "win32", 'test specific to Windows')
+    def test_pathext_preferred_for_execute(self):
+        with os_helper.EnvironmentVarGuard() as env:
+            env["PATH"] = self.temp_dir if isinstance(self.temp_dir, str) else self.temp_dir.decode()
+            env["PATHEXT"] = ".test"
+
+            exe = os.path.join(self.temp_dir, self.to_text_type("test.exe"))
+            open(exe, 'w').close()
+            os.chmod(exe, 0o755)
+
+            # default behavior allows a direct match if nothing in PATHEXT matches
+            self.assertEqual(shutil.which(self.to_text_type("test.exe")), exe)
+
+            dot_test = os.path.join(self.temp_dir, self.to_text_type("test.exe.test"))
+            open(dot_test, 'w').close()
+            os.chmod(dot_test, 0o755)
+
+            # now we have a PATHEXT match, so it take precedence
+            self.assertEqual(shutil.which(self.to_text_type("test.exe")), dot_test)
+
+            # but if we don't use os.X_OK we don't change the order based off PATHEXT
+            # and therefore get the direct match.
+            self.assertEqual(shutil.which(self.to_text_type("test.exe"), mode=os.F_OK), exe)
+
+    # See GH-109590
+    @unittest.skipUnless(sys.platform == "win32", 'test specific to Windows')
+    def test_pathext_given_extension_preferred(self):
+        with os_helper.EnvironmentVarGuard() as env:
+            env["PATH"] = self.temp_dir if isinstance(self.temp_dir, str) else self.temp_dir.decode()
+            env["PATHEXT"] = ".exe2;.exe"
+
+            exe = os.path.join(self.temp_dir, self.to_text_type("test.exe"))
+            open(exe, 'w').close()
+            os.chmod(exe, 0o755)
+
+            exe2 = os.path.join(self.temp_dir, self.to_text_type("test.exe2"))
+            open(exe2, 'w').close()
+            os.chmod(exe2, 0o755)
+
+            # even though .exe2 is preferred in PATHEXT, we matched directly to test.exe
+            self.assertEqual(shutil.which(self.to_text_type("test.exe")), exe)
+            self.assertEqual(shutil.which(self.to_text_type("test")), exe2)
+
 
 class TestWhichBytes(TestWhich):
     def setUp(self):
@@ -2320,8 +2403,17 @@ class TestWhichBytes(TestWhich):
         self.dir = os.fsencode(self.dir)
         self.file = os.fsencode(self.file)
         self.temp_file.name = os.fsencode(self.temp_file.name)
+        self.temp_dir = os.fsencode(self.temp_dir)
         self.curdir = os.fsencode(self.curdir)
         self.ext = os.fsencode(self.ext)
+
+    def to_text_type(self, s):
+        '''
+        In this class we're testing with bytes, so convert s to a bytes
+        '''
+        if isinstance(s, str):
+            return s.encode()
+        return s
 
 
 class TestMove(BaseTest, unittest.TestCase):

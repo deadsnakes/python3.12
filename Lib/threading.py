@@ -38,6 +38,20 @@ _allocate_lock = _thread.allocate_lock
 _set_sentinel = _thread._set_sentinel
 get_ident = _thread.get_ident
 try:
+    _is_main_interpreter = _thread._is_main_interpreter
+except AttributeError:
+    # See https://github.com/python/cpython/issues/112826.
+    # We can pretend a subinterpreter is the main interpreter for the
+    # sake of _shutdown(), since that only means we do not wait for the
+    # subinterpreter's threads to finish.  Instead, they will be stopped
+    # later by the mechanism we use for daemon threads.  The likelihood
+    # of this case is small because rarely will the _thread module be
+    # replaced by a module without _is_main_interpreter().
+    # Furthermore, this is all irrelevant in applications
+    # that do not use subinterpreters.
+    def _is_main_interpreter():
+        return True
+try:
     get_native_id = _thread.get_native_id
     _HAVE_THREAD_NATIVE_ID = True
     __all__.append('get_native_id')
@@ -237,6 +251,13 @@ class _RLock:
 
     def _is_owned(self):
         return self._owner == get_ident()
+
+    # Internal method used for reentrancy checks
+
+    def _recursion_count(self):
+        if self._owner != get_ident():
+            return 0
+        return self._count
 
 _PyRLock = _RLock
 
@@ -1559,7 +1580,7 @@ def _shutdown():
     # the main thread's tstate_lock - that won't happen until the interpreter
     # is nearly dead.  So we release it here.  Note that just calling _stop()
     # isn't enough:  other threads may already be waiting on _tstate_lock.
-    if _main_thread._is_stopped:
+    if _main_thread._is_stopped and _is_main_interpreter():
         # _shutdown() was already called
         return
 
@@ -1612,6 +1633,7 @@ def main_thread():
     In normal conditions, the main thread is the thread from which the
     Python interpreter was started.
     """
+    # XXX Figure this out for subinterpreters.  (See gh-75698.)
     return _main_thread
 
 # get thread-local implementation, either from the thread
