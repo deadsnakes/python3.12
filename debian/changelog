@@ -1,3 +1,9 @@
+python3.12 (3.12.2-1+focal1) focal; urgency=medium
+
+  * Python 3.12.2 release.
+
+ -- Łukasz Langa (GPG langa.pl) <lukasz@langa.pl>  Sat, 10 Feb 2024 18:24:53 +0000
+
 python3.12 (3.12.1-1+focal2) focal; urgency=medium
 
   * update postinst for -testsuite pyc compilation
