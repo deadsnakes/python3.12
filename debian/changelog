@@ -1,3 +1,9 @@
+python3.12 (3.12.2-1+focal3) focal; urgency=medium
+
+  * Update idlelib's NEWS filename.
+
+ -- Anthony Sottile <asottile@umich.edu>  Sun, 25 Feb 2024 11:36:57 -0500
+
 python3.12 (3.12.2-1+focal2) focal; urgency=medium
 
   * Trivial re-release.
