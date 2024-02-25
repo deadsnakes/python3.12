@@ -1,3 +1,9 @@
+python3.12 (3.12.2-1+jammy3) jammy; urgency=medium
+
+  * Update idlelib's NEWS filename.
+
+ -- Anthony Sottile <asottile@umich.edu>  Sun, 25 Feb 2024 11:35:05 -0500
+
 python3.12 (3.12.2-1+jammy2) jammy; urgency=medium
 
   * Trivial re-release.
