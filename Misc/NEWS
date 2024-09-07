@@ -2,6 +2,149 @@
 Python News
 +++++++++++
 
+What's New in Python 3.12.6 final?
+==================================
+
+*Release date: 2024-09-06*
+
+macOS
+-----
+
+- gh-123418: Updated macOS installer build to use OpenSSL 3.0.15.
+
+Windows
+-------
+
+- gh-123418: Updated Windows build to use OpenSSL 3.0.15.
+
+- gh-100256: :mod:`mimetypes` no longer fails when it encounters an
+  inaccessible registry key.
+
+- gh-79846: Makes :code:`ssl.create_default_context()` ignore invalid
+  certificates in the Windows certificate store
+
+Tools/Demos
+-----------
+
+- gh-123418: Update GitHub CI workflows to use OpenSSL 3.0.15 and
+  multissltests to use 3.0.15, 3.1.7, and 3.2.3.
+
+Tests
+-----
+
+- gh-101525: Skip ``test_gdb`` if the binary is relocated by BOLT. Patch by
+  Donghee Na.
+
+Security
+--------
+
+- gh-123678: Upgrade libexpat to 2.6.3
+
+- gh-121285: Remove backtracking from tarfile header parsing for
+  ``hdrcharset``, PAX, and GNU sparse headers.
+
+Library
+-------
+
+- gh-123270: Applied a more surgical fix for malformed payloads in
+  :class:`zipfile.Path` causing infinite loops (gh-122905) without breaking
+  contents using legitimate characters.
+
+- gh-123213: :meth:`xml.etree.ElementTree.Element.extend` and
+  :class:`~xml.etree.ElementTree.Element` assignment no longer hide the
+  internal exception if an erronous generator is passed. Patch by Bar Harel.
+
+- gh-85110: Preserve relative path in URL without netloc in
+  :func:`urllib.parse.urlunsplit` and :func:`urllib.parse.urlunparse`.
+
+- gh-123067: Fix quadratic complexity in parsing ``"``-quoted cookie values
+  with backslashes by :mod:`http.cookies`.
+
+- gh-122903: ``zipfile.Path.glob`` now correctly matches directories instead
+  of silently omitting them.
+
+- gh-122905: :class:`zipfile.Path` objects now sanitize names from the
+  zipfile.
+
+- gh-122695: Fixed double-free when using :func:`gc.get_referents` with a
+  freed :class:`asyncio.Future` iterator.
+
+- gh-116263: :class:`logging.handlers.RotatingFileHandler` no longer rolls
+  over empty log files.
+
+- gh-118814: Fix the :class:`typing.TypeVar` constructor when name is passed
+  by keyword.
+
+- gh-122478: Remove internal frames from tracebacks shown in
+  :class:`code.InteractiveInterpreter` with non-default
+  :func:`sys.excepthook`. Save correct tracebacks in
+  :attr:`sys.last_traceback` and update ``__traceback__`` attribute of
+  :attr:`sys.last_value` and :attr:`sys.last_exc`.
+
+- gh-113785: :mod:`csv` now correctly parses numeric fields (when used with
+  :const:`csv.QUOTE_NONNUMERIC`) which start with an escape character.
+
+- gh-112182: :meth:`!asyncio.futures.Future.set_exception` now transforms
+  :exc:`StopIteration` into :exc:`RuntimeError` instead of hanging or other
+  misbehavior. Patch contributed by Jamie Phan.
+
+- gh-108172: ``webbrowser`` honors OS preferred browser on Linux when its
+  desktop entry name contains the text of a known browser name.
+
+- gh-102988: :func:`email.utils.getaddresses` and
+  :func:`email.utils.parseaddr` now return ``('', '')`` 2-tuples in more
+  situations where invalid email addresses are encountered instead of
+  potentially inaccurate values. Add optional *strict* parameter to these
+  two functions: use ``strict=False`` to get the old behavior, accept
+  malformed inputs. ``getattr(email.utils, 'supports_strict_parsing',
+  False)`` can be use to check if the *strict* paramater is available. Patch
+  by Thomas Dwyer and Victor Stinner to improve the CVE-2023-27043 fix.
+
+- gh-99437: :func:`runpy.run_path` now decodes path-like objects, making
+  sure __file__ and sys.argv[0] of the module being run are always strings.
+
+IDLE
+----
+
+- gh-120083: Add explicit black IDLE Hovertip foreground color needed for
+  recent macOS. Fixes Sonoma showing unreadable white on pale yellow.  Patch
+  by John Riggles.
+
+Core and Builtins
+-----------------
+
+- gh-123321: Prevent Parser/myreadline race condition from segfaulting on
+  multi-threaded use. Patch by Bar Harel and Amit Wienner.
+
+- gh-122982: Extend the deprecation period for bool inversion (``~``) by two
+  years.
+
+- gh-123229: Fix valgrind warning by initializing the f-string buffers to 0
+  in the tokenizer. Patch by Pablo Galindo
+
+- gh-123142: Fix too-wide source location in exception tracebacks coming
+  from broken iterables in comprehensions.
+
+- gh-123048: Fix a bug where pattern matching code could emit a
+  :opcode:`JUMP_FORWARD` with no source location.
+
+- gh-123083: Fix a potential use-after-free in ``STORE_ATTR_WITH_HINT``.
+
+- gh-122527: Fix a crash that occurred when a ``PyStructSequence`` was
+  deallocated after its type's dictionary was cleared by the GC.  The type's
+  :c:member:`~PyTypeObject.tp_basicsize` now accounts for non-sequence
+  fields that aren't included in the :c:macro:`Py_SIZE` of the sequence.
+
+- gh-93691: Fix source locations of instructions generated for with
+  statements.
+
+Build
+-----
+
+- gh-123297: Propagate the value of ``LDFLAGS`` to ``LDCXXSHARED`` in
+  :mod:`sysconfig`. Patch by Pablo Galindo
+
+
 What's New in Python 3.12.5 final?
 ==================================
 
@@ -147,7 +290,7 @@ Library
   :meth:`datetime.date.fromtimestamp` to achieve consistency with
   C-extension implementation.
 
-- gh-120244: Fix memory leak in :func:`re.sub()` when the replacement string
+- gh-120244: Fix memory leak in :func:`re.sub` when the replacement string
   contains backreferences.
 
 - gh-120211: Fix :mod:`tkinter.ttk` with Tcl/Tk 9.0.
@@ -769,7 +912,7 @@ Library
 - gh-67044: :func:`csv.writer` now always quotes or escapes ``'\r'`` and
   ``'\n'``, regardless of *lineterminator* value.
 
-- gh-115712: :func:`csv.writer()` now quotes empty fields if delimiter is a
+- gh-115712: :func:`csv.writer` now quotes empty fields if delimiter is a
   space and skipinitialspace is true and raises exception if quoting is not
   possible.
 
@@ -799,12 +942,12 @@ Library
 - gh-115392: Fix a bug in :mod:`doctest` where incorrect line numbers would
   be reported for decorated functions.
 
-- gh-114563: Fix several :func:`format()` bugs when using the C
-  implementation of :class:`~decimal.Decimal`: * memory leak in some rare
-  cases when using the ``z`` format option (coerce negative 0) * incorrect
-  output when applying the ``z`` format option to type ``F`` (fixed-point
-  with capital ``NAN`` / ``INF``) * incorrect output when applying the ``#``
-  format option (alternate form)
+- gh-114563: Fix several :func:`format` bugs when using the C implementation
+  of :class:`~decimal.Decimal`: * memory leak in some rare cases when using
+  the ``z`` format option (coerce negative 0) * incorrect output when
+  applying the ``z`` format option to type ``F`` (fixed-point with capital
+  ``NAN`` / ``INF``) * incorrect output when applying the ``#`` format
+  option (alternate form)
 
 - gh-115197: ``urllib.request`` no longer resolves the hostname before
   checking it against the system's proxy bypass list on macOS and Windows.
@@ -877,7 +1020,7 @@ Library
 
 - bpo-44865: Add missing call to localization function in :mod:`argparse`.
 
-- bpo-43952: Fix :meth:`multiprocessing.connection.Listener.accept()` to
+- bpo-43952: Fix :meth:`multiprocessing.connection.Listener.accept` to
   accept empty bytes as authkey. Not accepting empty bytes as key causes it
   to hang indefinitely.
 
@@ -1646,9 +1789,8 @@ Library
 - gh-111531: Fix reference leaks in ``bind_class()`` and ``bind_all()``
   methods of :mod:`tkinter` widgets.
 
-- gh-111356: Added :func:`io.text_encoding()`,
-  :data:`io.DEFAULT_BUFFER_SIZE`, and :class:`io.IncrementalNewlineDecoder`
-  to ``io.__all__``.
+- gh-111356: Added :func:`io.text_encoding`, :data:`io.DEFAULT_BUFFER_SIZE`,
+  and :class:`io.IncrementalNewlineDecoder` to ``io.__all__``.
 
 - gh-111342: Fixed typo in :func:`math.sumprod`.
 
@@ -1665,8 +1807,8 @@ Library
   command. It leaves *sequence* unbound only if *funcid* was the last bound
   command.
 
-- gh-79033: Another attempt at fixing :func:`asyncio.Server.wait_closed()`.
-  It now blocks until both conditions are true: the server is closed, *and*
+- gh-79033: Another attempt at fixing :func:`asyncio.Server.wait_closed`. It
+  now blocks until both conditions are true: the server is closed, *and*
   there are no more active connections. (This means that in some cases where
   in 3.12.0 this function would *incorrectly* have returned immediately, it
   will now block; in particular, when there are no active connections but
@@ -4168,7 +4310,7 @@ Core and Builtins
 Library
 -------
 
-- gh-103085: Pure python :func:`locale.getencoding()` will not warn
+- gh-103085: Pure python :func:`locale.getencoding` will not warn
   deprecation.
 
 - gh-103068: It's no longer possible to register conditional breakpoints in
@@ -4811,7 +4953,7 @@ Library
 - gh-101015: Fix :func:`typing.get_type_hints` on ``'*tuple[...]'`` and
   ``*tuple[...]``. It must not drop the ``Unpack`` part.
 
-- gh-101000: Add :func:`os.path.splitroot()`, which splits a path into a
+- gh-101000: Add :func:`os.path.splitroot`, which splits a path into a
   3-item tuple ``(drive, root, tail)``. This new function is used by
   :mod:`pathlib` to improve the performance of path construction by up to a
   third.
@@ -5159,11 +5301,11 @@ Library
 - gh-100234: Set a default value of 1.0 for the ``lambd`` parameter in
   random.expovariate().
 
-- gh-100228: A :exc:`DeprecationWarning` may be raised when
-  :func:`os.fork()` or :func:`os.forkpty()` is called from multi-threaded
-  processes.  Forking with threads is unsafe and can cause deadlocks,
-  crashes and subtle problems. Lack of a warning does not indicate that the
-  fork call was actually safe, as Python may not be aware of all threads.
+- gh-100228: A :exc:`DeprecationWarning` may be raised when :func:`os.fork`
+  or :func:`os.forkpty` is called from multi-threaded processes.  Forking
+  with threads is unsafe and can cause deadlocks, crashes and subtle
+  problems. Lack of a warning does not indicate that the fork call was
+  actually safe, as Python may not be aware of all threads.
 
 - gh-100039: Improve signatures for enums and flags.
 
@@ -5525,7 +5667,7 @@ Library
 - gh-64490: Fix refcount error when arguments are packed to tuple in
   Argument Clinic.
 
-- gh-99029: :meth:`pathlib.PurePath.relative_to()` now treats naked Windows
+- gh-99029: :meth:`pathlib.PurePath.relative_to` now treats naked Windows
   drive paths as relative. This brings its behaviour in line with other
   parts of pathlib.
 
@@ -5984,7 +6126,7 @@ Library
   deprecated by :pep:`594`.
 
 - gh-96192: Fix handling of ``bytes`` :term:`path-like objects <path-like
-  object>` in :func:`os.ismount()`.
+  object>` in :func:`os.ismount`.
 
 - gh-94172: :mod:`ftplib`: Remove the ``FTP_TLS.ssl_version`` class
   attribute: use the *context* parameter instead. Patch by Victor Stinner
@@ -7296,10 +7438,10 @@ Library
   Patch by Victor Stinner.
 
 - gh-94199: :mod:`hashlib`: Remove the pure Python implementation of
-  :func:`hashlib.pbkdf2_hmac()`, deprecated in Python 3.10. Python 3.10 and
+  :func:`hashlib.pbkdf2_hmac`, deprecated in Python 3.10. Python 3.10 and
   newer requires OpenSSL 1.1.1 (:pep:`644`): this OpenSSL version provides a
-  C implementation of :func:`~hashlib.pbkdf2_hmac()` which is faster. Patch
-  by Victor Stinner.
+  C implementation of :func:`~hashlib.pbkdf2_hmac` which is faster. Patch by
+  Victor Stinner.
 
 - gh-94196: :mod:`gzip`: Remove the ``filename`` attribute of
   :class:`gzip.GzipFile`, deprecated since Python 2.6, use the
@@ -8396,7 +8538,7 @@ Core and Builtins
   specialization may have prevented Python-to-Python calls respecting PEP
   523.
 
-- gh-92203: Add a closure keyword-only parameter to :func:`exec()`. It can
+- gh-92203: Add a closure keyword-only parameter to :func:`exec`. It can
   only be specified when exec-ing a code object that uses free variables.
   When specified, it must be a tuple, with exactly the number of cell
   variables referenced by the code object. closure has a default value of
@@ -9207,7 +9349,7 @@ Core and Builtins
 - bpo-47012: Speed up iteration of :class:`bytes` and :class:`bytearray` by
   30%. Patch by Kumar Aditya.
 
-- bpo-47009: Improved the performance of :meth:`list.append()` and list
+- bpo-47009: Improved the performance of :meth:`list.append` and list
   comprehensions by optimizing for the common case, where no resize is
   needed. Patch by Dennis Sweeney.
 
@@ -9525,7 +9667,7 @@ Library
   * Don't overwrite :exc:`BufferError` with :exc:`ValueError` when conversion to
     BLOB fails.
   * Raise :exc:`~sqlite3.ProgrammingError` instead of :exc:`~sqlite3.Warning` if
-    user tries to :meth:`~sqlite3.Cursor.execute()` more than one SQL statement.
+    user tries to :meth:`~sqlite3.Cursor.execute` more than one SQL statement.
   * Raise :exc:`~sqlite3.ProgrammingError` instead of :exc:`ValueError` if an SQL
     query contains null characters.
 
@@ -12765,7 +12907,7 @@ Library
   occurs during file extraction.
 
 - bpo-44935: :mod:`subprocess` on Solaris now also uses
-  :func:`os.posix_spawn()` for better performance.
+  :func:`os.posix_spawn` for better performance.
 
 - bpo-44911: :class:`~unittest.IsolatedAsyncioTestCase` will no longer throw
   an exception while cancelling leaked tasks. Patch by Bar Harel.
@@ -14266,7 +14408,7 @@ Library
   :class:`typing.ParamSpecKwargs`, which enables a more useful ``repr()``.
   Patch by Jelle Zijlstra.
 
-- bpo-43731: Add an ``encoding`` parameter :func:`logging.fileConfig()`.
+- bpo-43731: Add an ``encoding`` parameter :func:`logging.fileConfig`.
 
 - bpo-43712: Add ``encoding`` and ``errors`` parameters to
   :func:`fileinput.input` and :class:`fileinput.FileInput`.
@@ -14387,7 +14529,7 @@ Library
   Patch by Ma Lin.
 
 - bpo-36470: Fix dataclasses with ``InitVar``\s and
-  :func:`~dataclasses.replace()`. Patch by Claudiu Popa.
+  :func:`~dataclasses.replace`. Patch by Claudiu Popa.
 
 - bpo-40849: Expose X509_V_FLAG_PARTIAL_CHAIN ssl flag
 
@@ -14398,11 +14540,11 @@ Library
   accept a *follow_symlinks* keyword-only argument for consistency with
   corresponding functions in the :mod:`os` module.
 
-- bpo-39899: :func:`os.path.expanduser()` now refuses to guess Windows home
+- bpo-39899: :func:`os.path.expanduser` now refuses to guess Windows home
   directories if the basename of current user's home directory does not
   match their username.
 
-  :meth:`pathlib.Path.expanduser()` and :meth:`~pathlib.Path.home()` now
+  :meth:`pathlib.Path.expanduser` and :meth:`~pathlib.Path.home` now
   consistently raise :exc:`RuntimeError` exception when a home directory
   cannot be resolved. Previously a :exc:`KeyError` exception could be raised
   on Windows when the ``"USERNAME"``  environment variable was unset.
@@ -14479,7 +14621,7 @@ Windows
 
 - bpo-35306: Adds additional arguments to :func:`os.startfile` function.
 
-- bpo-43538: Avoid raising errors from :meth:`pathlib.Path.exists()` when
+- bpo-43538: Avoid raising errors from :meth:`pathlib.Path.exists` when
   passed an invalid filename.
 
 - bpo-38822: Fixed :func:`os.stat` failing on inaccessible directories with
@@ -14850,8 +14992,8 @@ Library
 - bpo-14678: Add an invalidate_caches() method to the zipimport.zipimporter
   class to support importlib.invalidate_caches(). Patch by Desmond Cheong.
 
-- bpo-42782: Fail fast in :func:`shutil.move()` to avoid creating
-  destination directories on failure.
+- bpo-42782: Fail fast in :func:`shutil.move` to avoid creating destination
+  directories on failure.
 
 - bpo-40066: Enum's ``repr()`` and ``str()`` have changed: ``repr()`` is now
   *EnumClass.MemberName* and ``str()`` is *MemberName*.  Additionally,
@@ -14870,7 +15012,7 @@ Library
   value of type bytes, it is now handled consistently.  Previously
   exceptions could be raised from some tempfile APIs when the directory did
   not already exist in this situation.  Also ensures that the
-  :func:`tempfile.gettempdir()` and :func:`tempfile.gettempdirb()` functions
+  :func:`tempfile.gettempdir` and :func:`tempfile.gettempdirb` functions
   *always* return ``str`` and ``bytes`` respectively.
 
 - bpo-39342: Expose ``X509_V_FLAG_ALLOW_PROXY_CERTS`` as
@@ -15773,7 +15915,7 @@ Library
 - bpo-31904: Fix site and sysconfig modules for VxWorks RTOS which has no
   home directories.
 
-- bpo-41462: Add :func:`os.set_blocking()` support for VxWorks RTOS.
+- bpo-41462: Add :func:`os.set_blocking` support for VxWorks RTOS.
 
 - bpo-40219: Lowered :class:`tkinter.ttk.LabeledScale` dummy widget to
   prevent hiding part of the content label.
@@ -16075,7 +16217,7 @@ Library
 
 - bpo-42403: Simplify the :mod:`importlib` external bootstrap code:
   ``importlib._bootstrap_external`` now uses regular imports to import
-  builtin modules. When it is imported, the builtin :func:`__import__()`
+  builtin modules. When it is imported, the builtin :func:`__import__`
   function is already fully working and so can be used to import builtin
   modules like :mod:`sys`. Patch by Victor Stinner.
 
@@ -16088,8 +16230,8 @@ Library
   initialization API (:pep:`489`). Patch by Victor Stinner and Mohamed
   Koubaa.
 
-- bpo-37205: :func:`time.time()`, :func:`time.perf_counter()` and
-  :func:`time.monotonic()` functions can no longer fail with a Python fatal
+- bpo-37205: :func:`time.time`, :func:`time.perf_counter` and
+  :func:`time.monotonic` functions can no longer fail with a Python fatal
   error, instead raise a regular Python exception on failure.
 
 - bpo-42328: Fixed :meth:`tkinter.ttk.Style.map`. The function accepts now
@@ -16101,12 +16243,11 @@ Library
   (flatten, deduplicate, use type to cache key). Patch provided by Yurii
   Karabas.
 
-- bpo-37205: :func:`time.perf_counter()` on Windows and
-  :func:`time.monotonic()` on macOS are now system-wide. Previously, they
-  used an offset computed at startup to reduce the precision loss caused by
-  the float type. Use :func:`time.perf_counter_ns()` and
-  :func:`time.monotonic_ns()` added in Python 3.7 to avoid this precision
-  loss.
+- bpo-37205: :func:`time.perf_counter` on Windows and :func:`time.monotonic`
+  on macOS are now system-wide. Previously, they used an offset computed at
+  startup to reduce the precision loss caused by the float type. Use
+  :func:`time.perf_counter_ns` and :func:`time.monotonic_ns` added in Python
+  3.7 to avoid this precision loss.
 
 - bpo-42318: Fixed support of non-BMP characters in :mod:`tkinter` on macOS.
 
@@ -16605,7 +16746,7 @@ Library
 - bpo-41966: Fix pickling pure Python :class:`datetime.time` subclasses.
   Patch by Dean Inwood.
 
-- bpo-19270: :meth:`sched.scheduler.cancel()` will now cancel the correct
+- bpo-19270: :meth:`sched.scheduler.cancel` will now cancel the correct
   event, if two events with same priority are scheduled for the same time.
   Patch by Bar Harel.
 
@@ -17154,7 +17295,7 @@ Core and Builtins
   (e.g. that have the :meth:`~object.__int__` method but do not have the
   :meth:`~object.__index__` method).
 
-- bpo-29882: Add :meth:`int.bit_count()`, counting the number of ones in the
+- bpo-29882: Add :meth:`int.bit_count`, counting the number of ones in the
   binary representation of an integer. Patch by Niklas Fiekas.
 
 - bpo-36982: Use ncurses extended color functions when available to support
@@ -17311,7 +17452,7 @@ Library
   Inputs that used to cause ZeroDivisionError now cause an OverflowError
   instead.
 
-- bpo-41440: Add :func:`os.cpu_count()` support for VxWorks RTOS.
+- bpo-41440: Add :func:`os.cpu_count` support for VxWorks RTOS.
 
 - bpo-41316: Fix the :mod:`tarfile` module to write only basename of TAR
   file to GZIP compression header.
@@ -17612,7 +17753,7 @@ Library
 - bpo-38144: Added the *root_dir* and *dir_fd* parameters in
   :func:`glob.glob`.
 
-- bpo-26543: Fix :meth:`IMAP4.noop()` when debug mode is enabled (ex:
+- bpo-26543: Fix :meth:`IMAP4.noop` when debug mode is enabled (ex:
   ``imaplib.Debug = 3``).
 
 - bpo-12178: :func:`csv.writer` now correctly escapes *escapechar* when
@@ -18153,7 +18294,7 @@ Library
   ``randbytes()`` now directly reuses ``getrandbits()``.
 
 - bpo-40394: Added default arguments to
-  :meth:`difflib.SequenceMatcher.find_longest_match()`.
+  :meth:`difflib.SequenceMatcher.find_longest_match`.
 
 - bpo-39995: Fix a race condition in concurrent.futures._ThreadWakeup:
   access to _ThreadWakeup is now protected with the shutdown lock.
@@ -18479,8 +18620,8 @@ Library
 - bpo-40330: In :meth:`ShareableList.__setitem__`, check the size of a new
   string item after encoding it to utf-8, not before.
 
-- bpo-40148: Added :meth:`pathlib.Path.with_stem()` to create a new Path
-  with the stem replaced.
+- bpo-40148: Added :meth:`pathlib.Path.with_stem` to create a new Path with
+  the stem replaced.
 
 - bpo-40325: Deprecated support for set objects in random.sample().
 
@@ -18639,8 +18780,8 @@ Library
   returned as part of source of the class. Patch by Karthikeyan
   Singaravelan.
 
-- bpo-33262: Deprecate passing None as an argument for
-  :func:`shlex.split()`'s ``s`` parameter.  Patch by Zackery Spytz.
+- bpo-33262: Deprecate passing None as an argument for :func:`shlex.split`'s
+  ``s`` parameter.  Patch by Zackery Spytz.
 
 - bpo-31758: Prevent crashes when using an uninitialized
   ``_elementtree.XMLParser`` object. Patch by Oren Milman.
@@ -18989,7 +19130,7 @@ Library
   preferred to avoid the case when the temporary-file-generated address is
   too large for an AF_UNIX socket address. Patch by Pablo Galindo.
 
-- bpo-36287: :func:`ast.dump()` no longer outputs optional fields and
+- bpo-36287: :func:`ast.dump` no longer outputs optional fields and
   attributes with default values. The default values for optional fields and
   attributes of AST nodes are now set as class attributes (e.g.
   ``Constant.kind`` is set to ``None``).
@@ -19556,12 +19697,11 @@ Windows
 - bpo-39393: Improve the error message when attempting to load a DLL with
   unresolved dependencies.
 
-- bpo-38883: :meth:`~pathlib.Path.home()` and
-  :meth:`~pathlib.Path.expanduser()` on Windows now prefer
-  :envvar:`USERPROFILE` and no longer use :envvar:`HOME`, which is not
-  normally set for regular user accounts. This makes them again behave like
-  :func:`os.path.expanduser`, which was changed to ignore :envvar:`HOME` in
-  3.8, see :issue:`36264`.
+- bpo-38883: :meth:`~pathlib.Path.home` and :meth:`~pathlib.Path.expanduser`
+  on Windows now prefer :envvar:`USERPROFILE` and no longer use
+  :envvar:`HOME`, which is not normally set for regular user accounts. This
+  makes them again behave like :func:`os.path.expanduser`, which was changed
+  to ignore :envvar:`HOME` in 3.8, see :issue:`36264`.
 
 - bpo-39185: The build.bat script has additional options for very-quiet
   output (-q) and very-verbose output (-vv)
@@ -20429,8 +20569,8 @@ Core and Builtins
 - bpo-38631: Replace ``Py_FatalError()`` call with a regular
   :exc:`RuntimeError` exception in :meth:`float.__getformat__`.
 
-- bpo-38639: Optimized :func:`math.floor()`, :func:`math.ceil()` and
-  :func:`math.trunc()` for floats.
+- bpo-38639: Optimized :func:`math.floor`, :func:`math.ceil` and
+  :func:`math.trunc` for floats.
 
 - bpo-38640: Fixed a bug in the compiler that was causing to raise in the
   presence of break statements and continue statements inside always false
@@ -21388,9 +21528,9 @@ Library
 - bpo-37279: Fix asyncio sendfile support when sendfile sends extra data in
   fallback mode.
 
-- bpo-19865: :func:`ctypes.create_unicode_buffer()` now also supports
-  non-BMP characters on platforms with 16-bit :c:type:`wchar_t` (for
-  example, Windows and AIX).
+- bpo-19865: :func:`ctypes.create_unicode_buffer` now also supports non-BMP
+  characters on platforms with 16-bit :c:type:`wchar_t` (for example,
+  Windows and AIX).
 
 - bpo-37266: In a subinterpreter, spawning a daemon thread now raises an
   exception. Daemon threads were never supported in subinterpreters.
@@ -21414,8 +21554,8 @@ Library
   tuple.
 
 - bpo-36607: Eliminate :exc:`RuntimeError` raised by
-  :func:`asyncio.all_tasks()` if internal tasks weak set is changed by
-  another thread during iteration.
+  :func:`asyncio.all_tasks` if internal tasks weak set is changed by another
+  thread during iteration.
 
 - bpo-18748: :class:`!_pyio.IOBase` destructor now does nothing if getting
   the ``closed`` attribute fails to better mimic :class:`!_io.IOBase`
@@ -21569,7 +21709,7 @@ Library
 
 - bpo-30618: Add :meth:`~pathlib.Path.readlink`. Patch by Girts Folkmanis.
 
-- bpo-32498: Made :func:`urllib.parse.unquote()` accept bytes in addition to
+- bpo-32498: Made :func:`urllib.parse.unquote` accept bytes in addition to
   strings. Patch by Stein Karlsen.
 
 - bpo-33348: lib2to3 now recognizes expressions after ``*`` and ``**`` like
@@ -21666,7 +21806,7 @@ Documentation
 
 - bpo-37478: Added possible exceptions to the description of os.chdir().
 
-- bpo-34903: Documented that in :meth:`datetime.datetime.strptime()`, the
+- bpo-34903: Documented that in :meth:`datetime.datetime.strptime`, the
   leading zero in some two-digit formats is optional. Patch by Mike Gleen.
 
 - bpo-36260: Add decompression pitfalls to zipfile module documentation.
@@ -22399,8 +22539,8 @@ Core and Builtins
 - bpo-37032: Added new ``replace()`` method to the code type
   (:class:`types.CodeType`).
 
-- bpo-37007: Implement :func:`socket.if_nameindex()`,
-  :func:`socket.if_nametoindex()`, and :func:`socket.if_indextoname()` on
+- bpo-37007: Implement :func:`socket.if_nameindex`,
+  :func:`socket.if_nametoindex`, and :func:`socket.if_indextoname` on
   Windows.
 
 - bpo-36829: :c:func:`PyErr_WriteUnraisable` now creates a traceback object
@@ -22523,7 +22663,7 @@ Library
 - bpo-29262: Add ``get_origin()`` and ``get_args()`` introspection helpers
   to ``typing`` module.
 
-- bpo-12639: :meth:`msilib.Directory.start_component()` no longer fails if
+- bpo-12639: :meth:`msilib.Directory.start_component` no longer fails if
   *keyfile* is not ``None``.
 
 - bpo-36999: Add the ``asyncio.Task.get_coro()`` method to publicly expose
@@ -22814,7 +22954,7 @@ Library
 
 - bpo-35125: Asyncio: Remove inner callback on outer cancellation in shield
 
-- bpo-35721: Fix :meth:`asyncio.SelectorEventLoop.subprocess_exec()` leaks
+- bpo-35721: Fix :meth:`asyncio.SelectorEventLoop.subprocess_exec` leaks
   file descriptors if ``Popen`` fails and called with
   ``stdin=subprocess.PIPE``. Patch by Niklas Fiekas.
 
@@ -23324,8 +23464,8 @@ Library
 - bpo-17396: :mod:`modulefinder` no longer crashes when encountering syntax
   errors in followed imports. Patch by Brandt Bucher.
 
-- bpo-35934: Added :meth:`~socket.create_server()` and
-  :meth:`~socket.has_dualstack_ipv6()` convenience functions to automate the
+- bpo-35934: Added :meth:`~socket.create_server` and
+  :meth:`~socket.has_dualstack_ipv6` convenience functions to automate the
   necessary tasks usually involved when creating a server socket, including
   accepting both IPv4 and IPv6 connections on the same socket.  (Contributed
   by Giampaolo Rodola in :issue:`17561`.)
@@ -24384,7 +24524,7 @@ Core and Builtins
 
 - bpo-30156: The C function ``property_descr_get()`` uses a "cached" tuple
   to optimize function calls. But this tuple can be discovered in debug mode
-  with :func:`sys.getobjects()`. Remove the optimization, it's not really
+  with :func:`sys.getobjects`. Remove the optimization, it's not really
   worth it and it causes 3 different crashes last years.
 
 - bpo-34762: Fix contextvars C API to use PyObject* pointer types.
@@ -25138,9 +25278,9 @@ Library
   and also to add support by default for *wss*, the secure websocket
   protocol.
 
-- bpo-34922: Fixed integer overflow in the :meth:`~hashlib.shake.digest()`
-  and :meth:`~hashlib.shake.hexdigest()` methods for the SHAKE algorithm in
-  the :mod:`hashlib` module.
+- bpo-34922: Fixed integer overflow in the :meth:`~hashlib.shake.digest` and
+  :meth:`~hashlib.shake.hexdigest` methods for the SHAKE algorithm in the
+  :mod:`hashlib` module.
 
 - bpo-34925: 25% speedup in argument parsing for the functions in the bisect
   module.
@@ -25262,10 +25402,10 @@ Library
 - bpo-34636: Speed up re scanning of many non-matching characters for \s \w
   and \d within bytes objects. (microoptimization)
 
-- bpo-24412: Add :func:`~unittest.addModuleCleanup()` and
-  :meth:`~unittest.TestCase.addClassCleanup()` to unittest to support
-  cleanups for :func:`~unittest.setUpModule()` and
-  :meth:`~unittest.TestCase.setUpClass()`. Patch by Lisa Roach.
+- bpo-24412: Add :func:`~unittest.addModuleCleanup` and
+  :meth:`~unittest.TestCase.addClassCleanup` to unittest to support cleanups
+  for :func:`~unittest.setUpModule` and
+  :meth:`~unittest.TestCase.setUpClass`. Patch by Lisa Roach.
 
 - bpo-34630: Don't log SSL certificate errors in asyncio code (connection
   error logging is skipped already).
@@ -25346,8 +25486,8 @@ Library
   ``trace.cover`` file.
 
 - bpo-34441: Fix crash when an ``ABC``-derived class with invalid
-  ``__subclasses__`` is passed as the second argument to
-  :func:`issubclass()`. Patch by Alexey Izbyshev.
+  ``__subclasses__`` is passed as the second argument to :func:`issubclass`.
+  Patch by Alexey Izbyshev.
 
 - bpo-34427: Fix infinite loop in ``a.extend(a)`` for ``MutableSequence``
   subclasses.
@@ -25417,7 +25557,7 @@ Library
   Wright.
 
 - bpo-34270: The default asyncio task class now always has a name which can
-  be get or set using two new methods (:meth:`~asyncio.Task.get_name()` and
+  be get or set using two new methods (:meth:`~asyncio.Task.get_name` and
   :meth:`~asyncio.Task.set_name`) and is visible in the :func:`repr` output.
   An initial name can also be set using the new ``name`` keyword argument to
   :func:`asyncio.create_task` or the
@@ -25588,12 +25728,12 @@ Library
   :func:`~os.path.exists`, :func:`~os.path.lexists`, :func:`~os.path.isdir`,
   :func:`~os.path.isfile`, :func:`~os.path.islink`, and
   :func:`~os.path.ismount`, and :mod:`pathlib.Path` methods that return a
-  boolean result like :meth:`~pathlib.Path.exists()`,
-  :meth:`~pathlib.Path.is_dir()`, :meth:`~pathlib.Path.is_file()`,
-  :meth:`~pathlib.Path.is_mount()`, :meth:`~pathlib.Path.is_symlink()`,
-  :meth:`~pathlib.Path.is_block_device()`,
-  :meth:`~pathlib.Path.is_char_device()`, :meth:`~pathlib.Path.is_fifo()`,
-  :meth:`~pathlib.Path.is_socket()` now return ``False`` instead of raising
+  boolean result like :meth:`~pathlib.Path.exists`,
+  :meth:`~pathlib.Path.is_dir`, :meth:`~pathlib.Path.is_file`,
+  :meth:`~pathlib.Path.is_mount`, :meth:`~pathlib.Path.is_symlink`,
+  :meth:`~pathlib.Path.is_block_device`,
+  :meth:`~pathlib.Path.is_char_device`, :meth:`~pathlib.Path.is_fifo`,
+  :meth:`~pathlib.Path.is_socket` now return ``False`` instead of raising
   :exc:`ValueError` or its subclasses :exc:`UnicodeEncodeError` and
   :exc:`UnicodeDecodeError` for paths that contain characters or bytes
   unrepresentable at the OS level.
@@ -25960,7 +26100,7 @@ Library
   Python 3.0.
 
 - bpo-20104: Improved error handling and fixed a reference leak in
-  :func:`os.posix_spawn()`.
+  :func:`os.posix_spawn`.
 
 - bpo-33106: Deleting a key from a read-only dbm database raises module
   specific error instead of KeyError.
@@ -26157,7 +26297,7 @@ Library
 - bpo-32792: collections.ChainMap() preserves the order of the underlying
   mappings.
 
-- bpo-32775: :func:`fnmatch.translate()` no longer produces patterns which
+- bpo-32775: :func:`fnmatch.translate` no longer produces patterns which
   contain set operations. Sets starting with '[' or containing '--', '&&',
   '~~' or '||' will be interpreted differently in regular expressions in
   future versions. Currently they emit warnings. fnmatch.translate() now
@@ -27591,7 +27731,7 @@ Library
   :func:`pickle.Pickler.dump`.
 
 - bpo-20104: Improved error handling and fixed a reference leak in
-  :func:`os.posix_spawn()`.
+  :func:`os.posix_spawn`.
 
 - bpo-33175: In dataclasses, Field.__set_name__ now looks up the
   __set_name__ special method on the class, not the instance, of the default
@@ -28011,7 +28151,7 @@ Library
 - bpo-32792: collections.ChainMap() preserves the order of the underlying
   mappings.
 
-- bpo-32775: :func:`fnmatch.translate()` no longer produces patterns which
+- bpo-32775: :func:`fnmatch.translate` no longer produces patterns which
   contain set operations. Sets starting with '[' or containing '--', '&&',
   '~~' or '||' will be interpreted differently in regular expressions in
   future versions. Currently they emit warnings. fnmatch.translate() now
@@ -28357,8 +28497,8 @@ Library
 - bpo-32248: Add :mod:`importlib.resources` and
   :class:`importlib.abc.ResourceReader` as the unified API for reading
   resources contained within packages.  Loaders wishing to support resource
-  reading must implement the :meth:`get_resource_reader()` method.
-  File-based and zipimport-based loaders both implement these APIs.
+  reading must implement the :meth:`get_resource_reader` method.  File-based
+  and zipimport-based loaders both implement these APIs.
   :class:`importlib.abc.ResourceLoader` is deprecated in favor of these new
   APIs.
 
@@ -28625,8 +28765,8 @@ Library
   coroutines. Affected functions: loop.sock_sendall, loop.sock_recv,
   loop.sock_accept, loop.getaddrinfo, loop.getnameinfo.
 
-- bpo-32323: :func:`urllib.parse.urlsplit()` does not convert zone-id
-  (scope) to lower case for scoped IPv6 addresses in hostnames now.
+- bpo-32323: :func:`urllib.parse.urlsplit` does not convert zone-id (scope)
+  to lower case for scoped IPv6 addresses in hostnames now.
 
 - bpo-32302: Fix bdist_wininst of distutils for CRT v142: it binary
   compatible with CRT v140.
@@ -28634,7 +28774,7 @@ Library
 - bpo-29711: Fix ``stop_serving`` in asyncio proactor loop kill all
   listening servers
 
-- bpo-32308: :func:`re.sub()` now replaces empty matches adjacent to a
+- bpo-32308: :func:`re.sub` now replaces empty matches adjacent to a
   previous non-empty match.
 
 - bpo-29970: Abort asyncio SSLProtocol connection if handshake not complete
@@ -32247,8 +32387,8 @@ Library
 - bpo-32185: The SSL module no longer sends IP addresses in SNI TLS
   extension on platforms with OpenSSL 1.0.2+ or inet_pton.
 
-- bpo-32323: :func:`urllib.parse.urlsplit()` does not convert zone-id
-  (scope) to lower case for scoped IPv6 addresses in hostnames now.
+- bpo-32323: :func:`urllib.parse.urlsplit` does not convert zone-id (scope)
+  to lower case for scoped IPv6 addresses in hostnames now.
 
 - bpo-32302: Fix bdist_wininst of distutils for CRT v142: it binary
   compatible with CRT v140.

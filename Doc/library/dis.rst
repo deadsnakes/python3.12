@@ -1000,8 +1000,8 @@ iterations of the loop.
       if count == 0:
           value = ()
       else:
-          STACK = STACK[:-count]
           value = tuple(STACK[-count:])
+          STACK = STACK[:-count]
 
       STACK.append(value)
 
@@ -1462,7 +1462,7 @@ iterations of the loop.
 
       end = STACK.pop()
       start = STACK.pop()
-      STACK.append(slice(start, stop))
+      STACK.append(slice(start, end))
 
    if it is 3, implements::
 
