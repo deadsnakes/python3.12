@@ -1,3 +1,9 @@
+# archived
+
+moved to [py3.12](https://github.com/deadsnakes/py3.12)
+
+___
+
 python3.12
 ==========
 
